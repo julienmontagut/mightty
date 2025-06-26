@@ -219,7 +219,9 @@ impl OnDemandLogFile {
         path.push(format!("Alacritty-{}.log", process::id()));
 
         // Set log path as an environment variable.
-        env::set_var(ALACRITTY_LOG_ENV, path.as_os_str());
+        unsafe {
+            env::set_var(ALACRITTY_LOG_ENV, path.as_os_str());
+        }
 
         OnDemandLogFile {
             path,

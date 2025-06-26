@@ -98,10 +98,14 @@ pub fn setup_env() {
     } else {
         "xterm-256color"
     };
-    env::set_var("TERM", terminfo);
+    unsafe {
+        env::set_var("TERM", terminfo);
+    }
 
     // Advertise 24-bit color support.
-    env::set_var("COLORTERM", "truecolor");
+    unsafe {
+        env::set_var("COLORTERM", "truecolor");
+    }
 }
 
 /// Check if a terminfo entry exists on the system.

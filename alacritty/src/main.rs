@@ -174,7 +174,9 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
 
     // Set env vars from config.
     for (key, value) in config.env.iter() {
-        env::set_var(key, value);
+        unsafe {
+            env::set_var(key, value);
+        }
     }
 
     // Switch to home directory.
