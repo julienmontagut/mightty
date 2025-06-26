@@ -41,8 +41,8 @@ use winit::window::{
 use alacritty_terminal::index::Point;
 
 use crate::cli::WindowOptions;
-use crate::config::window::{Decorations, Identity, WindowConfig};
 use crate::config::UiConfig;
+use crate::config::window::{Decorations, Identity, WindowConfig};
 use crate::display::SizeInfo;
 
 /// Window icon for `_NET_WM_ICON` property.
@@ -199,7 +199,10 @@ impl Window {
 
         let scale_factor = window.scale_factor();
         log::info!("Window scale factor: {}", scale_factor);
-        let is_x11 = matches!(window.window_handle().unwrap().as_raw(), RawWindowHandle::Xlib(_));
+        let is_x11 = matches!(
+            window.window_handle().unwrap().as_raw(),
+            RawWindowHandle::Xlib(_)
+        );
 
         Ok(Self {
             hold: options.terminal_options.hold,
@@ -351,7 +354,11 @@ impl Window {
     }
 
     pub fn set_urgent(&self, is_urgent: bool) {
-        let attention = if is_urgent { Some(UserAttentionType::Critical) } else { None };
+        let attention = if is_urgent {
+            Some(UserAttentionType::Critical)
+        } else {
+            None
+        };
 
         self.window.request_user_attention(attention);
     }
@@ -413,7 +420,8 @@ impl Window {
 
     pub fn set_fullscreen(&self, fullscreen: bool) {
         if fullscreen {
-            self.window.set_fullscreen(Some(Fullscreen::Borderless(None)));
+            self.window
+                .set_fullscreen(Some(Fullscreen::Borderless(None)));
         } else {
             self.window.set_fullscreen(None);
         }
@@ -465,7 +473,7 @@ impl Window {
             RawWindowHandle::AppKit(handle) => {
                 assert!(MainThreadMarker::new().is_some());
                 unsafe { handle.ns_view.cast::<NSView>().as_ref() }
-            },
+            }
             _ => return,
         };
 
@@ -508,11 +516,13 @@ fn use_srgb_color_space(window: &WinitWindow) {
         RawWindowHandle::AppKit(handle) => {
             assert!(MainThreadMarker::new().is_some());
             unsafe { handle.ns_view.cast::<NSView>().as_ref() }
-        },
+        }
         _ => return,
     };
 
     unsafe {
-        view.window().unwrap().setColorSpace(Some(&NSColorSpace::sRGBColorSpace()));
+        view.window()
+            .unwrap()
+            .setColorSpace(Some(&NSColorSpace::sRGBColorSpace()));
     }
 }

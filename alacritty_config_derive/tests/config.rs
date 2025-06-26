@@ -125,21 +125,27 @@ fn config_deserialize() {
 
     // Verify all log messages are correct.
     let error_logs = logger.error_logs.lock().unwrap();
-    assert_eq!(error_logs.as_slice(), [
-        "Config error: enom_error: unknown variant `HugaBuga`, expected one of `One`, `Two`, \
+    assert_eq!(
+        error_logs.as_slice(),
+        [
+            "Config error: enom_error: unknown variant `HugaBuga`, expected one of `One`, `Two`, \
          `Three`",
-        "Config error: field1: invalid type: string \"testing\", expected usize",
-    ]);
+            "Config error: field1: invalid type: string \"testing\", expected usize",
+        ]
+    );
     let warn_logs = logger.warn_logs.lock().unwrap();
-    assert_eq!(warn_logs.as_slice(), [
-        "Config warning: field1 has been deprecated; use field2 instead\nUse `alacritty migrate` \
+    assert_eq!(
+        warn_logs.as_slice(),
+        [
+            "Config warning: field1 has been deprecated; use field2 instead\nUse `alacritty migrate` \
          to automatically resolve it",
-        "Config warning: enom_error has been deprecated\nUse `alacritty migrate` to automatically \
+            "Config warning: enom_error has been deprecated\nUse `alacritty migrate` to automatically \
          resolve it",
-        "Config warning: gone has been removed; it's gone\nUse `alacritty migrate` to \
+            "Config warning: gone has been removed; it's gone\nUse `alacritty migrate` to \
          automatically resolve it",
-        "Unused config key: field3",
-    ]);
+            "Unused config key: field3",
+        ]
+    );
 }
 
 /// Logger storing all messages for later validation.
@@ -157,11 +163,11 @@ impl Log for Logger {
             Level::Error => {
                 let mut error_logs = self.error_logs.lock().unwrap();
                 error_logs.push(record.args().to_string());
-            },
+            }
             Level::Warn => {
                 let mut warn_logs = self.warn_logs.lock().unwrap();
                 warn_logs.push(record.args().to_string());
-            },
+            }
             _ => unreachable!(),
         }
     }

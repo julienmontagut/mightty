@@ -32,8 +32,8 @@ use alacritty_terminal::tty;
 use crate::cli::{ParsedOptions, WindowOptions};
 use crate::clipboard::Clipboard;
 use crate::config::UiConfig;
-use crate::display::window::Window;
 use crate::display::Display;
+use crate::display::window::Window;
 use crate::event::{
     ActionContext, Event, EventProxy, InlineSearchState, Mouse, SearchState, TouchPurpose,
 };
@@ -78,7 +78,9 @@ impl WindowContext {
         let raw_display_handle = event_loop.display_handle().unwrap().as_raw();
 
         let mut identity = config.window.identity.clone();
-        options.window_identity.override_identity_config(&mut identity);
+        options
+            .window_identity
+            .override_identity_config(&mut identity);
 
         // Windows has different order of GL platform initialization compared to any other platform;
         // it requires the window first.
@@ -128,7 +130,9 @@ impl WindowContext {
         let gl_display = gl_config.display();
 
         let mut identity = config.window.identity.clone();
-        options.window_identity.override_identity_config(&mut identity);
+        options
+            .window_identity
+            .override_identity_config(&mut identity);
 
         let window = Window::new(
             event_loop,
@@ -170,7 +174,9 @@ impl WindowContext {
         proxy: EventLoopProxy<Event>,
     ) -> Result<Self, Box<dyn Error>> {
         let mut pty_config = config.pty_config();
-        options.terminal_options.override_pty_config(&mut pty_config);
+        options
+            .terminal_options
+            .override_pty_config(&mut pty_config);
 
         let preserve_title = options.window_identity.title.is_some();
 
@@ -187,7 +193,11 @@ impl WindowContext {
         // This object contains all of the state about what's being displayed. It's
         // wrapped in a clonable mutex since both the I/O loop and display need to
         // access it.
-        let terminal = Term::new(config.term_options(), &display.size_info, event_proxy.clone());
+        let terminal = Term::new(
+            config.term_options(),
+            &display.size_info,
+            event_proxy.clone(),
+        );
         let terminal = Arc::new(FairMutex::new(terminal));
 
         // Create the PTY.
@@ -195,7 +205,11 @@ impl WindowContext {
         // The PTY forks a process to run the shell on the slave side of the
         // pseudoterminal. A file descriptor for the master side is retained for
         // reading/writing to the shell.
-        let pty = tty::new(&pty_config, display.size_info.into(), display.window.id().into())?;
+        let pty = tty::new(
+            &pty_config,
+            display.size_info.into(),
+            display.window.id().into(),
+        )?;
 
         #[cfg(not(windows))]
         let master_fd = pty.file().as_raw_fd();
@@ -302,7 +316,9 @@ impl WindowContext {
             && (!self.config.window.dynamic_title
                 || self.display.window.title() == old_config.window.identity.title)
         {
-            self.display.window.set_title(self.config.window.identity.title.clone());
+            self.display
+                .window
+                .set_title(self.config.window.identity.title.clone());
         }
 
         let opaque = self.config.window_opacity() >= 1.;
@@ -312,14 +328,18 @@ impl WindowContext {
         self.display.window.set_has_shadow(opaque);
 
         #[cfg(target_os = "macos")]
-        self.display.window.set_option_as_alt(self.config.window.option_as_alt());
+        self.display
+            .window
+            .set_option_as_alt(self.config.window.option_as_alt());
 
         // Change opacity and blur state.
         self.display.window.set_transparent(!opaque);
         self.display.window.set_blur(self.config.window.blur);
 
         // Update hint keys.
-        self.display.hint_state.update_alphabet(self.config.hints.alphabet());
+        self.display
+            .hint_state
+            .update_alphabet(self.config.hints.alphabet());
 
         // Update cursor blinking.
         let event = Event::new(TerminalEvent::CursorBlinkingChange.into(), None);
@@ -404,18 +424,21 @@ impl WindowContext {
     ) {
         match event {
             WinitEvent::AboutToWait
-            | WinitEvent::WindowEvent { event: WindowEvent::RedrawRequested, .. } => {
+            | WinitEvent::WindowEvent {
+                event: WindowEvent::RedrawRequested,
+                ..
+            } => {
                 // Skip further event handling with no staged updates.
                 if self.event_queue.is_empty() {
                     return;
                 }
 
                 // Continue to process all pending events.
-            },
+            }
             event => {
                 self.event_queue.push(event);
                 return;
-            },
+            }
         }
 
         let mut terminal = self.terminal.lock();
@@ -482,7 +505,13 @@ impl WindowContext {
         if self.dirty
             && self.display.window.has_frame
             && !self.occluded
-            && !matches!(event, WinitEvent::WindowEvent { event: WindowEvent::RedrawRequested, .. })
+            && !matches!(
+                event,
+                WinitEvent::WindowEvent {
+                    event: WindowEvent::RedrawRequested,
+                    ..
+                }
+            )
         {
             self.display.window.request_redraw();
         }

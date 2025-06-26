@@ -207,8 +207,10 @@ impl Processor {
     fn skip_window_event(event: &WindowEvent) -> bool {
         matches!(
             event,
-            WindowEvent::KeyboardInput { is_synthetic: true, .. }
-                | WindowEvent::ActivationTokenDone { .. }
+            WindowEvent::KeyboardInput {
+                is_synthetic: true,
+                ..
+            } | WindowEvent::ActivationTokenDone { .. }
                 | WindowEvent::DoubleTapGesture { .. }
                 | WindowEvent::TouchpadPressure { .. }
                 | WindowEvent::RotationGesture { .. }
@@ -314,14 +316,16 @@ impl ApplicationHandler<Event> for Processor {
                         self.global_ipc_options.append(&mut options);
                     }
                 }
-            },
+            }
             // Process IPC config requests.
             #[cfg(unix)]
             (EventType::IpcGetConfig(stream), window_id) => {
                 // Get the config for the requested window ID.
                 let config = match self.windows.iter().find(|(id, _)| window_id == Some(*id)) {
                     Some((_, window_context)) => window_context.config(),
-                    None => &self.global_ipc_options.override_config_rc(self.config.clone()),
+                    None => &self
+                        .global_ipc_options
+                        .override_config_rc(self.config.clone()),
                 };
 
                 // Convert config to JSON format.
@@ -330,19 +334,21 @@ impl ApplicationHandler<Event> for Processor {
                     Err(err) => {
                         error!("Failed config serialization: {err}");
                         return;
-                    },
+                    }
                 };
 
                 // Send JSON config to the socket.
                 if let Ok(mut stream) = stream.try_clone() {
                     ipc::send_reply(&mut stream, SocketReply::GetConfig(config_json));
                 }
-            },
+            }
             (EventType::ConfigReload(path), _) => {
                 // Clear config logs from message bar for all terminals.
                 for window_context in self.windows.values_mut() {
                     if !window_context.message_buffer.is_empty() {
-                        window_context.message_buffer.remove_target(LOG_TARGET_CONFIG);
+                        window_context
+                            .message_buffer
+                            .remove_target(LOG_TARGET_CONFIG);
                         window_context.display.pending_update.dirty = true;
                     }
                 }
@@ -366,7 +372,7 @@ impl ApplicationHandler<Event> for Processor {
                         window_context.update_config(self.config.clone());
                     }
                 }
-            },
+            }
             // Create a new terminal window.
             (EventType::CreateWindow(options), _) => {
                 // XXX Ensure that no context is current when creating a new window,
@@ -386,7 +392,7 @@ impl ApplicationHandler<Event> for Processor {
                 } else if let Err(err) = self.create_window(event_loop, options) {
                     error!("Could not open window: {:?}", err);
                 }
-            },
+            }
             // Process events affecting all windows.
             (payload, None) => {
                 let event = WinitEvent::UserEvent(Event::new(payload, None));
@@ -400,7 +406,7 @@ impl ApplicationHandler<Event> for Processor {
                         event.clone(),
                     );
                 }
-            },
+            }
             (EventType::Terminal(TerminalEvent::Wakeup), Some(window_id)) => {
                 if let Some(window_context) = self.windows.get_mut(window_id) {
                     window_context.dirty = true;
@@ -408,7 +414,7 @@ impl ApplicationHandler<Event> for Processor {
                         window_context.display.window.request_redraw();
                     }
                 }
-            },
+            }
             (EventType::Terminal(TerminalEvent::Exit), Some(window_id)) => {
                 // Remove the closed terminal.
                 let window_context = match self.windows.entry(*window_id) {
@@ -417,7 +423,7 @@ impl ApplicationHandler<Event> for Processor {
                         if !window_context.get().display.window.hold =>
                     {
                         window_context.remove()
-                    },
+                    }
                     _ => return,
                 };
 
@@ -433,7 +439,7 @@ impl ApplicationHandler<Event> for Processor {
 
                     event_loop.exit();
                 }
-            },
+            }
             // NOTE: This event bypasses batching to minimize input latency.
             (EventType::Frame, Some(window_id)) => {
                 if let Some(window_context) = self.windows.get_mut(window_id) {
@@ -442,7 +448,7 @@ impl ApplicationHandler<Event> for Processor {
                         window_context.display.window.request_redraw();
                     }
                 }
-            },
+            }
             (payload, Some(window_id)) => {
                 if let Some(window_context) = self.windows.get_mut(window_id) {
                     window_context.handle_event(
@@ -454,7 +460,7 @@ impl ApplicationHandler<Event> for Processor {
                         WinitEvent::UserEvent(Event::new(payload, *window_id)),
                     );
                 }
-            },
+            }
         };
     }
 
@@ -501,7 +507,7 @@ impl ApplicationHandler<Event> for Processor {
                 unsafe {
                     display.terminate();
                 }
-            },
+            }
             _ => (),
         }
 
@@ -523,7 +529,10 @@ pub struct Event {
 
 impl Event {
     pub fn new<I: Into<Option<WindowId>>>(payload: EventType, window_id: I) -> Self {
-        Self { window_id: window_id.into(), payload }
+        Self {
+            window_id: window_id.into(),
+            payload,
+        }
     }
 }
 
@@ -614,7 +623,8 @@ impl SearchState {
 
     /// Search regex text if a search is active.
     fn regex_mut(&mut self) -> Option<&mut String> {
-        self.history_index.and_then(move |index| self.history.get_mut(index))
+        self.history_index
+            .and_then(move |index| self.history.get_mut(index))
     }
 }
 
@@ -712,7 +722,13 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
         let vi_mode = self.terminal.mode().contains(TermMode::VI);
 
         // Update selection.
-        if vi_mode && self.terminal.selection.as_ref().is_some_and(|s| !s.is_empty()) {
+        if vi_mode
+            && self
+                .terminal
+                .selection
+                .as_ref()
+                .is_some_and(|s| !s.is_empty())
+        {
             self.update_selection(self.terminal.vi_mode_cursor.point, Side::Right);
         } else if self.mouse.left_button_state == ElementState::Pressed
             || self.mouse.right_button_state == ElementState::Pressed
@@ -734,7 +750,11 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
 
     // Copy text selection.
     fn copy_selection(&mut self, ty: ClipboardType) {
-        let text = match self.terminal.selection_to_string().filter(|s| !s.is_empty()) {
+        let text = match self
+            .terminal
+            .selection_to_string()
+            .filter(|s| !s.is_empty())
+        {
             Some(text) => text,
             None => return,
         };
@@ -746,7 +766,10 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
     }
 
     fn selection_is_empty(&self) -> bool {
-        self.terminal.selection.as_ref().map_or(true, Selection::is_empty)
+        self.terminal
+            .selection
+            .as_ref()
+            .map_or(true, Selection::is_empty)
     }
 
     fn clear_selection(&mut self) {
@@ -789,13 +812,13 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
         match &mut self.terminal.selection {
             Some(selection) if selection.ty == ty && !selection.is_empty() => {
                 self.clear_selection();
-            },
+            }
             Some(selection) if !selection.is_empty() => {
                 selection.ty = ty;
                 *self.dirty = true;
 
                 self.copy_selection(ClipboardType::Selection);
-            },
+            }
             _ => self.start_selection(ty, point, side),
         }
     }
@@ -884,14 +907,17 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
             options.window_tabbing_id = tabbing_id;
         }
 
-        let _ = self.event_proxy.send_event(Event::new(EventType::CreateWindow(options), None));
+        let _ = self
+            .event_proxy
+            .send_event(Event::new(EventType::CreateWindow(options), None));
     }
 
     #[cfg(windows)]
     fn create_new_window(&mut self) {
-        let _ = self
-            .event_proxy
-            .send_event(Event::new(EventType::CreateWindow(WindowOptions::default()), None));
+        let _ = self.event_proxy.send_event(Event::new(
+            EventType::CreateWindow(WindowOptions::default()),
+            None,
+        ));
     }
 
     fn spawn_daemon<I, S>(&self, program: &str, args: I)
@@ -937,7 +963,12 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
     #[inline]
     fn start_search(&mut self, direction: Direction) {
         // Only create new history entry if the previous regex wasn't empty.
-        if self.search_state.history.front().map_or(true, |regex| !regex.is_empty()) {
+        if self
+            .search_state
+            .history
+            .front()
+            .map_or(true, |regex| !regex.is_empty())
+        {
             self.search_state.history.push_front(String::new());
             self.search_state.history.truncate(MAX_SEARCH_HISTORY_SIZE);
         }
@@ -997,19 +1028,21 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
 
         // Find the target vi cursor point by going to the next match to the right of the origin,
         // then jump to the next search match in the target direction.
-        let target = self.search_next(origin, Direction::Right, Side::Right).and_then(|rm| {
-            let regex_match = match direction {
-                Direction::Right => {
-                    let origin = rm.end().add(self.terminal, Boundary::None, 1);
-                    self.search_next(origin, Direction::Right, Side::Left)?
-                },
-                Direction::Left => {
-                    let origin = rm.start().sub(self.terminal, Boundary::None, 1);
-                    self.search_next(origin, Direction::Left, Side::Left)?
-                },
-            };
-            Some(*regex_match.start())
-        });
+        let target = self
+            .search_next(origin, Direction::Right, Side::Right)
+            .and_then(|rm| {
+                let regex_match = match direction {
+                    Direction::Right => {
+                        let origin = rm.end().add(self.terminal, Boundary::None, 1);
+                        self.search_next(origin, Direction::Right, Side::Left)?
+                    }
+                    Direction::Left => {
+                        let origin = rm.start().sub(self.terminal, Boundary::None, 1);
+                        self.search_next(origin, Direction::Left, Side::Left)?
+                    }
+                };
+                Some(*regex_match.start())
+            });
 
         // Move the vi cursor to the target position.
         if let Some(target) = target {
@@ -1062,7 +1095,7 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
             Some(index) => {
                 self.search_state.history[0] = self.search_state.history[index].clone();
                 self.search_state.history_index = Some(0);
-            },
+            }
             None => return,
         }
         let regex = &mut self.search_state.history[0];
@@ -1071,7 +1104,7 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
             // Handle backspace/ctrl+h.
             '\x08' | '\x7f' => {
                 let _ = regex.pop();
-            },
+            }
             // Add ascii and unicode text.
             ' '..='~' | '\u{a0}'..='\u{10ffff}' => regex.push(c),
             // Ignore non-printable characters.
@@ -1161,16 +1194,17 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
         self.search_state.display_offset_delta = new_display_offset - old_display_offset;
 
         // Store origin and scroll back to the match.
-        self.terminal.scroll_display(Scroll::Delta(-self.search_state.display_offset_delta));
+        self.terminal
+            .scroll_display(Scroll::Delta(-self.search_state.display_offset_delta));
         self.search_state.origin = new_origin;
     }
 
     /// Find the next search match.
     fn search_next(&mut self, origin: Point, direction: Direction, side: Side) -> Option<Match> {
-        self.search_state
-            .dfas
-            .as_mut()
-            .and_then(|dfas| self.terminal.search_next(dfas, origin, direction, side, None))
+        self.search_state.dfas.as_mut().and_then(|dfas| {
+            self.terminal
+                .search_next(dfas, origin, direction, side, None)
+        })
     }
 
     #[inline]
@@ -1237,11 +1271,11 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
                 let mut args = command.args().to_vec();
                 args.push(text.into());
                 self.spawn_daemon(command.program(), &args);
-            },
+            }
             // Copy the text to the clipboard.
             HintAction::Action(HintInternalAction::Copy) => {
                 self.clipboard.store(ClipboardType::Clipboard, text);
-            },
+            }
             // Write the text to the PTY/search.
             HintAction::Action(HintInternalAction::Paste) => self.paste(&text, true),
             // Select the text.
@@ -1249,7 +1283,7 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
                 self.start_selection(SelectionType::Simple, *hint_bounds.start(), Side::Left);
                 self.update_selection(*hint_bounds.end(), Side::Right);
                 self.copy_selection(ClipboardType::Selection);
-            },
+            }
             // Move the vi mode cursor.
             HintAction::Action(HintInternalAction::MoveViModeCursor) => {
                 // Enter vi mode if we're not in it already.
@@ -1259,7 +1293,7 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
 
                 self.terminal.vi_goto_point(*hint_bounds.start());
                 self.mark_dirty();
-            },
+            }
         }
     }
 
@@ -1533,7 +1567,8 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
 
         // Reset display offset and cursor position.
         self.terminal.vi_mode_cursor.point = self.search_state.origin;
-        self.terminal.scroll_display(Scroll::Delta(self.search_state.display_offset_delta));
+        self.terminal
+            .scroll_display(Scroll::Delta(self.search_state.display_offset_delta));
         self.search_state.display_offset_delta = 0;
 
         *self.dirty = true;
@@ -1551,8 +1586,14 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
 
         // Jump to the next match.
         let direction = self.search_state.direction;
-        let clamped_origin = self.search_state.origin.grid_clamp(self.terminal, Boundary::Grid);
-        match self.terminal.search_next(dfas, clamped_origin, direction, Side::Left, limit) {
+        let clamped_origin = self
+            .search_state
+            .origin
+            .grid_clamp(self.terminal, Boundary::Grid);
+        match self
+            .terminal
+            .search_next(dfas, clamped_origin, direction, Side::Left, limit)
+        {
             Some(regex_match) => {
                 let old_offset = self.terminal.grid().display_offset() as i32;
 
@@ -1574,7 +1615,7 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
                 // Since we found a result, we require no delayed re-search.
                 let timer_id = TimerId::new(Topic::DelayedSearch, self.display.window.id());
                 self.scheduler.unschedule(timer_id);
-            },
+            }
             // Reset viewport only when we know there is no match, to prevent unnecessary jumping.
             None if limit.is_none() => self.search_reset_state(),
             None => {
@@ -1582,12 +1623,13 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
                 let timer_id = TimerId::new(Topic::DelayedSearch, self.display.window.id());
                 if !self.scheduler.scheduled(timer_id) {
                     let event = Event::new(EventType::SearchNext, self.display.window.id());
-                    self.scheduler.schedule(event, TYPING_SEARCH_DELAY, false, timer_id);
+                    self.scheduler
+                        .schedule(event, TYPING_SEARCH_DELAY, false, timer_id);
                 }
 
                 // Clear focused match.
                 self.search_state.focused_match = None;
-            },
+            }
         }
 
         *self.dirty = true;
@@ -1617,14 +1659,18 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
 
         // Check terminal cursor style.
         let terminal_blinking = self.terminal.cursor_style().blinking;
-        let mut blinking = cursor_style.blinking_override().unwrap_or(terminal_blinking);
+        let mut blinking = cursor_style
+            .blinking_override()
+            .unwrap_or(terminal_blinking);
         blinking &= (vi_mode || self.terminal().mode().contains(TermMode::SHOW_CURSOR))
             && self.display().ime.preedit().is_none();
 
         // Update cursor blinking state.
         let window_id = self.display.window.id();
-        self.scheduler.unschedule(TimerId::new(Topic::BlinkCursor, window_id));
-        self.scheduler.unschedule(TimerId::new(Topic::BlinkTimeout, window_id));
+        self.scheduler
+            .unschedule(TimerId::new(Topic::BlinkCursor, window_id));
+        self.scheduler
+            .unschedule(TimerId::new(Topic::BlinkTimeout, window_id));
 
         // Reset blinking timeout.
         *self.cursor_blink_timed_out = false;
@@ -1643,7 +1689,8 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
         let timer_id = TimerId::new(Topic::BlinkCursor, window_id);
         let event = Event::new(EventType::BlinkCursor, window_id);
         let blinking_interval = Duration::from_millis(self.config.cursor.blink_interval());
-        self.scheduler.schedule(event, blinking_interval, true, timer_id);
+        self.scheduler
+            .schedule(event, blinking_interval, true, timer_id);
     }
 
     fn schedule_blinking_timeout(&mut self) {
@@ -1656,7 +1703,8 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
         let event = Event::new(EventType::BlinkCursorTimeout, window_id);
         let timer_id = TimerId::new(Topic::BlinkTimeout, window_id);
 
-        self.scheduler.schedule(event, blinking_timeout, false, timer_id);
+        self.scheduler
+            .schedule(event, blinking_timeout, false, timer_id);
     }
 
     /// Perform vi mode inline search in the specified direction.
@@ -1671,7 +1719,9 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
         // Find next match in this line.
         let vi_point = self.terminal.vi_mode_cursor.point;
         let point = match direction {
-            Direction::Right => self.terminal.inline_search_right(vi_point, search_character),
+            Direction::Right => self
+                .terminal
+                .inline_search_right(vi_point, search_character),
             Direction::Left => self.terminal.inline_search_left(vi_point, search_character),
         };
 
@@ -1680,12 +1730,14 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
             if self.inline_search_state.stop_short {
                 let grid = self.terminal.grid();
                 point = match direction {
-                    Direction::Right => {
-                        grid.iter_from(point).prev().map_or(point, |cell| cell.point)
-                    },
-                    Direction::Left => {
-                        grid.iter_from(point).next().map_or(point, |cell| cell.point)
-                    },
+                    Direction::Right => grid
+                        .iter_from(point)
+                        .prev()
+                        .map_or(point, |cell| cell.point),
+                    Direction::Left => grid
+                        .iter_from(point)
+                        .next()
+                        .map_or(point, |cell| cell.point),
                 };
             }
 
@@ -1721,7 +1773,10 @@ pub struct TouchZoom {
 
 impl TouchZoom {
     pub fn new(slots: (TouchEvent, TouchEvent)) -> Self {
-        Self { slots, fractions: Default::default() }
+        Self {
+            slots,
+            fractions: Default::default(),
+        }
     }
 
     /// Get slot distance change since last update.
@@ -1846,7 +1901,7 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                         self.ctx.display.cursor_hidden ^= true;
                         *self.ctx.dirty = true;
                     }
-                },
+                }
                 EventType::BlinkCursorTimeout => {
                     // Disable blinking after timeout reached.
                     let timer_id = TimerId::new(Topic::BlinkCursor, self.ctx.display.window.id());
@@ -1854,24 +1909,27 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                     *self.ctx.cursor_blink_timed_out = true;
                     self.ctx.display.cursor_hidden = false;
                     *self.ctx.dirty = true;
-                },
+                }
                 // Add message only if it's not already queued.
                 EventType::Message(message) if !self.ctx.message_buffer.is_queued(&message) => {
                     self.ctx.message_buffer.push(message);
                     self.ctx.display.pending_update.dirty = true;
-                },
+                }
                 EventType::Terminal(event) => match event {
                     TerminalEvent::Title(title) => {
                         if !self.ctx.preserve_title && self.ctx.config.window.dynamic_title {
                             self.ctx.window().set_title(title);
                         }
-                    },
+                    }
                     TerminalEvent::ResetTitle => {
                         let window_config = &self.ctx.config.window;
                         if !self.ctx.preserve_title && window_config.dynamic_title {
-                            self.ctx.display.window.set_title(window_config.identity.title.clone());
+                            self.ctx
+                                .display
+                                .window
+                                .set_title(window_config.identity.title.clone());
                         }
-                    },
+                    }
                     TerminalEvent::Bell => {
                         // Set window urgency hint when window is not focused.
                         let focused = self.ctx.terminal.is_focused;
@@ -1884,20 +1942,21 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
 
                         // Execute bell command.
                         if let Some(bell_command) = &self.ctx.config.bell.command {
-                            self.ctx.spawn_daemon(bell_command.program(), bell_command.args());
+                            self.ctx
+                                .spawn_daemon(bell_command.program(), bell_command.args());
                         }
-                    },
+                    }
                     TerminalEvent::ClipboardStore(clipboard_type, content) => {
                         if self.ctx.terminal.is_focused {
                             self.ctx.clipboard.store(clipboard_type, content);
                         }
-                    },
+                    }
                     TerminalEvent::ClipboardLoad(clipboard_type, format) => {
                         if self.ctx.terminal.is_focused {
                             let text = format(self.ctx.clipboard.load(clipboard_type).as_str());
                             self.ctx.write_to_pty(text.into_bytes());
                         }
-                    },
+                    }
                     TerminalEvent::ColorRequest(index, format) => {
                         let color = match self.ctx.terminal().colors()[index] {
                             Some(color) => Rgb(color),
@@ -1906,11 +1965,11 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                             None => self.ctx.display.colors[index],
                         };
                         self.ctx.write_to_pty(format(color.0).into_bytes());
-                    },
+                    }
                     TerminalEvent::TextAreaSizeRequest(format) => {
                         let text = format(self.ctx.size_info().into());
                         self.ctx.write_to_pty(text.into_bytes());
-                    },
+                    }
                     TerminalEvent::PtyWrite(text) => self.ctx.write_to_pty(text.into_bytes()),
                     TerminalEvent::MouseCursorDirty => self.reset_mouse_cursor(),
                     TerminalEvent::CursorBlinkingChange => self.ctx.update_cursor_blinking(),
@@ -1929,7 +1988,7 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                         // User asked to close the window, so no need to hold it.
                         self.ctx.window().hold = false;
                         self.ctx.terminal.exit();
-                    },
+                    }
                     WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                         let old_scale_factor =
                             mem::replace(&mut self.ctx.window().scale_factor, scale_factor);
@@ -1942,7 +2001,7 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
 
                         let font = self.ctx.config.font.clone();
                         display_update_pending.set_font(font.with_size(self.ctx.display.font_size));
-                    },
+                    }
                     WindowEvent::Resized(size) => {
                         // Ignore resize events to zero in any dimension, to avoid issues with Winit
                         // and the ConPTY. A 0x0 resize will also occur when the window is minimized
@@ -1952,23 +2011,27 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                         }
 
                         self.ctx.display.pending_update.set_dimensions(size);
-                    },
-                    WindowEvent::KeyboardInput { event, is_synthetic: false, .. } => {
+                    }
+                    WindowEvent::KeyboardInput {
+                        event,
+                        is_synthetic: false,
+                        ..
+                    } => {
                         self.key_input(event);
-                    },
+                    }
                     WindowEvent::ModifiersChanged(modifiers) => self.modifiers_input(modifiers),
                     WindowEvent::MouseInput { state, button, .. } => {
                         self.ctx.window().set_mouse_visible(true);
                         self.mouse_input(state, button);
-                    },
+                    }
                     WindowEvent::CursorMoved { position, .. } => {
                         self.ctx.window().set_mouse_visible(true);
                         self.mouse_moved(position);
-                    },
+                    }
                     WindowEvent::MouseWheel { delta, phase, .. } => {
                         self.ctx.window().set_mouse_visible(true);
                         self.mouse_wheel_input(delta, phase);
-                    },
+                    }
                     WindowEvent::Touch(touch) => self.touch(touch),
                     WindowEvent::Focused(is_focused) => {
                         self.ctx.terminal.is_focused = is_focused;
@@ -1985,28 +2048,28 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
 
                         self.ctx.update_cursor_blinking();
                         self.on_focus_change(is_focused);
-                    },
+                    }
                     WindowEvent::Occluded(occluded) => {
                         *self.ctx.occluded = occluded;
-                    },
+                    }
                     WindowEvent::DroppedFile(path) => {
                         let path: String = path.to_string_lossy().into();
                         self.ctx.paste(&(path + " "), true);
-                    },
+                    }
                     WindowEvent::CursorLeft { .. } => {
                         self.ctx.mouse.inside_text_area = false;
 
                         if self.ctx.display().highlighted_hint.is_some() {
                             *self.ctx.dirty = true;
                         }
-                    },
+                    }
                     WindowEvent::Ime(ime) => match ime {
                         Ime::Commit(text) => {
                             *self.ctx.dirty = true;
                             // Don't use bracketed paste for single char input.
                             self.ctx.paste(&text, text.chars().count() > 1);
                             self.ctx.update_cursor_blinking();
-                        },
+                        }
                         Ime::Preedit(text, cursor_offset) => {
                             let preedit =
                                 (!text.is_empty()).then(|| Preedit::new(text, cursor_offset));
@@ -2016,17 +2079,19 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                                 self.ctx.update_cursor_blinking();
                                 *self.ctx.dirty = true;
                             }
-                        },
+                        }
                         Ime::Enabled => {
                             self.ctx.display.ime.set_enabled(true);
                             *self.ctx.dirty = true;
-                        },
+                        }
                         Ime::Disabled => {
                             self.ctx.display.ime.set_enabled(false);
                             *self.ctx.dirty = true;
-                        },
+                        }
                     },
-                    WindowEvent::KeyboardInput { is_synthetic: true, .. }
+                    WindowEvent::KeyboardInput {
+                        is_synthetic: true, ..
+                    }
                     | WindowEvent::ActivationTokenDone { .. }
                     | WindowEvent::DoubleTapGesture { .. }
                     | WindowEvent::TouchpadPressure { .. }
@@ -2042,7 +2107,7 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                     | WindowEvent::RedrawRequested
                     | WindowEvent::Moved(_) => (),
                 }
-            },
+            }
             WinitEvent::Suspended
             | WinitEvent::NewEvents { .. }
             | WinitEvent::DeviceEvent { .. }
@@ -2073,6 +2138,8 @@ impl EventProxy {
 
 impl EventListener for EventProxy {
     fn send_event(&self, event: TerminalEvent) {
-        let _ = self.proxy.send_event(Event::new(event.into(), self.window_id));
+        let _ = self
+            .proxy
+            .send_event(Event::new(event.into(), self.window_id));
     }
 }

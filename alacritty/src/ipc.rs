@@ -39,7 +39,10 @@ pub fn spawn_ipc_socket(
 
     env::set_var(ALACRITTY_SOCKET_ENV, socket_path.as_os_str());
     if options.daemon {
-        println!("ALACRITTY_SOCKET={}; export ALACRITTY_SOCKET", socket_path.display());
+        println!(
+            "ALACRITTY_SOCKET={}; export ALACRITTY_SOCKET",
+            socket_path.display()
+        );
     }
 
     // Spawn a thread to listen on the IPC socket.
@@ -60,7 +63,7 @@ pub fn spawn_ipc_socket(
                 Err(err) => {
                     warn!("Failed to convert data from socket: {}", err);
                     continue;
-                },
+                }
             };
 
             // Handle IPC events.
@@ -68,7 +71,7 @@ pub fn spawn_ipc_socket(
                 SocketMessage::CreateWindow(options) => {
                     let event = Event::new(EventType::CreateWindow(options), None);
                     let _ = event_proxy.send_event(event);
-                },
+                }
                 SocketMessage::Config(ipc_config) => {
                     let window_id = ipc_config
                         .window_id
@@ -76,13 +79,15 @@ pub fn spawn_ipc_socket(
                         .map(WindowId::from);
                     let event = Event::new(EventType::IpcConfig(ipc_config), window_id);
                     let _ = event_proxy.send_event(event);
-                },
+                }
                 SocketMessage::GetConfig(config) => {
-                    let window_id =
-                        config.window_id.and_then(|id| u64::try_from(id).ok()).map(WindowId::from);
+                    let window_id = config
+                        .window_id
+                        .and_then(|id| u64::try_from(id).ok())
+                        .map(WindowId::from);
                     let event = Event::new(EventType::IpcGetConfig(Arc::new(stream)), window_id);
                     let _ = event_proxy.send_event(event);
-                },
+                }
             }
         }
     });
@@ -127,7 +132,7 @@ fn handle_reply(stream: &UnixStream, message: &SocketMessage) -> IoResult<()> {
         (SocketMessage::GetConfig(..), SocketReply::GetConfig(config)) => {
             println!("{config}");
             Ok(())
-        },
+        }
         // Ignore requests without reply.
         _ => Ok(()),
     }
@@ -205,7 +210,7 @@ fn find_socket(socket_path: Option<PathBuf>) -> IoResult<UnixStream> {
             // Delete orphan sockets.
             Err(error) if error.kind() == ErrorKind::ConnectionRefused => {
                 let _ = fs::remove_file(&path);
-            },
+            }
             // Ignore other errors like permission issues.
             Err(_) => (),
         }
@@ -220,7 +225,9 @@ fn find_socket(socket_path: Option<PathBuf>) -> IoResult<UnixStream> {
 /// display servers running for the same user.
 #[cfg(not(target_os = "macos"))]
 fn socket_prefix() -> String {
-    let display = env::var("WAYLAND_DISPLAY").or_else(|_| env::var("DISPLAY")).unwrap_or_default();
+    let display = env::var("WAYLAND_DISPLAY")
+        .or_else(|_| env::var("DISPLAY"))
+        .unwrap_or_default();
     format!("Alacritty-{}", display.replace('/', "-"))
 }
 

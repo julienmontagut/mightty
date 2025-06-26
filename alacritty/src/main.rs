@@ -20,7 +20,7 @@ use std::{env, fs};
 
 use log::info;
 #[cfg(windows)]
-use windows_sys::Win32::System::Console::{AttachConsole, FreeConsole, ATTACH_PARENT_PROCESS};
+use windows_sys::Win32::System::Console::{ATTACH_PARENT_PROCESS, AttachConsole, FreeConsole};
 use winit::event_loop::EventLoop;
 #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
 use winit::raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
@@ -58,8 +58,8 @@ use crate::cli::MessageOptions;
 #[cfg(not(any(target_os = "macos", windows)))]
 use crate::cli::SocketMessage;
 use crate::cli::{Options, Subcommands};
-use crate::config::monitor::ConfigMonitor;
 use crate::config::UiConfig;
+use crate::config::monitor::ConfigMonitor;
 use crate::event::{Event, Processor};
 #[cfg(target_os = "macos")]
 use crate::macos::locale;
@@ -95,8 +95,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn msg(mut options: MessageOptions) -> Result<(), Box<dyn Error>> {
     #[cfg(not(any(target_os = "macos", windows)))]
     if let SocketMessage::CreateWindow(window_options) = &mut options.message {
-        window_options.activation_token =
-            env::var("XDG_ACTIVATION_TOKEN").or_else(|_| env::var("DESKTOP_STARTUP_ID")).ok();
+        window_options.activation_token = env::var("XDG_ACTIVATION_TOKEN")
+            .or_else(|_| env::var("DESKTOP_STARTUP_ID"))
+            .ok();
     }
     ipc::send_message(options.socket, options.message).map_err(|err| err.into())
 }
@@ -121,7 +122,11 @@ impl Drop for TemporaryFiles {
         // Clean up logfile.
         if let Some(log_file) = &self.log_file {
             if fs::remove_file(log_file).is_ok() {
-                let _ = writeln!(io::stdout(), "Deleted log file at \"{}\"", log_file.display());
+                let _ = writeln!(
+                    io::stdout(),
+                    "Deleted log file at \"{}\"",
+                    log_file.display()
+                );
             }
         }
     }
@@ -189,7 +194,7 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
             Err(err) => {
                 log::warn!("Unable to create socket: {:?}", err);
                 None
-            },
+            }
         }
     } else {
         None

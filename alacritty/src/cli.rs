@@ -6,15 +6,15 @@ use std::rc::Rc;
 
 use alacritty_config::SerdeReplace;
 use clap::{ArgAction, Args, Parser, Subcommand, ValueHint};
-use log::{error, LevelFilter};
+use log::{LevelFilter, error};
 use serde::{Deserialize, Serialize};
 use toml::Value;
 
 use alacritty_terminal::tty::Options as PtyOptions;
 
+use crate::config::UiConfig;
 use crate::config::ui_config::Program;
 use crate::config::window::{Class, Identity};
-use crate::config::UiConfig;
 use crate::logging::LOG_TARGET_IPC_CONFIG;
 
 /// CLI options for the main Alacritty executable.
@@ -96,7 +96,10 @@ impl Options {
             config.ipc_socket = Some(true);
         }
 
-        config.window.embed = self.embed.as_ref().and_then(|embed| parse_hex_or_decimal(embed));
+        config.window.embed = self
+            .embed
+            .as_ref()
+            .and_then(|embed| parse_hex_or_decimal(embed));
         config.debug.print_events |= self.print_events;
         config.debug.log_level = max(config.debug.log_level, self.log_level());
         config.debug.ref_test |= self.ref_test;
@@ -135,8 +138,8 @@ fn parse_class(input: &str) -> Result<Class, String> {
     let (general, instance) = match input.split_once(',') {
         // Warn the user if they've passed too many values.
         Some((_, instance)) if instance.contains(',') => {
-            return Err(String::from("Too many parameters"))
-        },
+            return Err(String::from("Too many parameters"));
+        }
         Some((general, instance)) => (general, instance),
         None => (input, input),
     };
@@ -172,7 +175,10 @@ impl TerminalOptions {
     /// Shell override passed through the CLI.
     pub fn command(&self) -> Option<Program> {
         let (program, args) = self.command.split_first()?;
-        Some(Program::WithArgs { program: program.clone(), args: args.to_vec() })
+        Some(Program::WithArgs {
+            program: program.clone(),
+            args: args.to_vec(),
+        })
     }
 
     /// Override the [`PtyOptions`]'s fields with the [`TerminalOptions`].
@@ -367,7 +373,7 @@ impl ParsedOptions {
                 Err(err) => {
                     eprintln!("Ignoring invalid CLI option '{option}': {err}");
                     continue;
-                },
+                }
             };
             config_options.push((option.clone(), parsed));
         }
@@ -387,7 +393,7 @@ impl ParsedOptions {
                         "Unable to override option '{}': {}", option, err
                     );
                     self.config_options.swap_remove(i);
-                },
+                }
                 Ok(_) => i += 1,
             }
         }

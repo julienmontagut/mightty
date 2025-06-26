@@ -1,5 +1,5 @@
-use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use bitflags::bitflags;
 #[cfg(feature = "serde")]
@@ -68,7 +68,10 @@ impl From<VteHyperlink> for Hyperlink {
 
 impl From<Hyperlink> for VteHyperlink {
     fn from(val: Hyperlink) -> Self {
-        VteHyperlink { id: Some(val.id().to_owned()), uri: val.uri().to_owned() }
+        VteHyperlink {
+            id: Some(val.id().to_owned()),
+            uri: val.uri().to_owned(),
+        }
     }
 }
 
@@ -87,10 +90,12 @@ impl HyperlinkInner {
         let id = match id {
             Some(id) => id.to_string(),
             None => {
-                let mut id = HYPERLINK_ID_SUFFIX.fetch_add(1, Ordering::Relaxed).to_string();
+                let mut id = HYPERLINK_ID_SUFFIX
+                    .fetch_add(1, Ordering::Relaxed)
+                    .to_string();
                 id.push_str("_alacritty");
                 id
-            },
+            }
         };
 
         Self { id, uri }
@@ -180,10 +185,9 @@ impl Cell {
     pub fn set_underline_color(&mut self, color: Option<Color>) {
         // If we reset color and we don't have zerowidth we should drop extra storage.
         if color.is_none()
-            && self
-                .extra
-                .as_ref()
-                .map_or(true, |extra| extra.zerowidth.is_empty() && extra.hyperlink.is_none())
+            && self.extra.as_ref().map_or(true, |extra| {
+                extra.zerowidth.is_empty() && extra.hyperlink.is_none()
+            })
         {
             self.extra = None;
         } else {
@@ -249,14 +253,20 @@ impl GridCell for Cell {
 
     #[inline]
     fn reset(&mut self, template: &Self) {
-        *self = Cell { bg: template.bg, ..Cell::default() };
+        *self = Cell {
+            bg: template.bg,
+            ..Cell::default()
+        };
     }
 }
 
 impl From<Color> for Cell {
     #[inline]
     fn from(color: Color) -> Self {
-        Self { bg: color, ..Cell::default() }
+        Self {
+            bg: color,
+            ..Cell::default()
+        }
     }
 }
 
