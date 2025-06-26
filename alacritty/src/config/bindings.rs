@@ -574,20 +574,11 @@ fn common_keybindings() -> Vec<KeyBinding> {
     )
 }
 
-#[cfg(not(any(target_os = "macos", target_os = "windows", test)))]
+#[cfg(not(any(target_os = "macos", test)))]
 pub fn platform_key_bindings() -> Vec<KeyBinding> {
     common_keybindings()
 }
 
-#[cfg(all(target_os = "windows", not(test)))]
-pub fn platform_key_bindings() -> Vec<KeyBinding> {
-    let mut bindings = bindings!(
-        KeyBinding;
-        Enter, ModifiersState::ALT; Action::ToggleFullscreen;
-    );
-    bindings.extend(common_keybindings());
-    bindings
-}
 
 #[cfg(all(target_os = "macos", not(test)))]
 pub fn platform_key_bindings() -> Vec<KeyBinding> {
