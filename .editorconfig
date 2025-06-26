@@ -9,4 +9,3 @@ insert_final_newline = true
 [*.{glsl,rs,toml}]
 indent_style = space
 indent_size = 4
-

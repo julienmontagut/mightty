@@ -2,7 +2,7 @@
 
 {
   # https://devenv.sh/basics/
-  env.GREET = "devenv";
+  env.PROJECT_NAME = "mightty";
 
   # https://devenv.sh/packages/
   packages = [ pkgs.git ];
@@ -42,4 +42,10 @@
   # git-hooks.hooks.shellcheck.enable = true;
 
   # See full reference at https://devenv.sh/reference/options/
+  devcontainer = {
+    enable = true;
+    settings = {
+      updateContentCommand = "direnv allow";
+    };
+  };
 }
