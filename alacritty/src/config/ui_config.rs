@@ -6,14 +6,17 @@ use std::mem;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+/// Trait for types that can be replaced with serde values.
+pub trait SerdeReplace {
+    fn replace(&mut self, value: toml::Value) -> Result<(), Box<dyn Error>>;
+}
+
 use log::{error, warn};
 use serde::de::{Error as SerdeError, MapAccess, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use unicode_width::UnicodeWidthChar;
 use winit::keyboard::{Key, ModifiersState};
 
-use alacritty_config::SerdeReplace;
-use alacritty_config_derive::{ConfigDeserialize, SerdeReplace};
 use alacritty_terminal::term::Config as TermConfig;
 use alacritty_terminal::term::search::RegexSearch;
 use alacritty_terminal::tty::{Options as PtyOptions, Shell};
@@ -40,7 +43,7 @@ use crate::config::window::WindowConfig;
 const URL_REGEX: &str = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https://|http://|news:|file:|git://|ssh:|ftp://)\
                          [^\u{0000}-\u{001F}\u{007F}-\u{009F}<>\"\\s{-}\\^⟨⟩`\\\\]+";
 
-#[derive(ConfigDeserialize, Serialize, Default, Clone, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Clone, Debug, PartialEq)]
 pub struct UiConfig {
     /// Miscellaneous configuration options.
     pub general: General,
@@ -76,8 +79,7 @@ pub struct UiConfig {
     pub colors: Colors,
 
     /// Path where config was loaded from.
-    #[config(skip)]
-    #[serde(skip_serializing)]
+    #[serde(skip)]
     pub config_paths: Vec<PathBuf>,
 
     /// Regex hints for interacting with terminal content.
@@ -88,30 +90,6 @@ pub struct UiConfig {
 
     /// Keyboard configuration.
     keyboard: Keyboard,
-
-    /// Path to a shell program to run on startup.
-    #[config(deprecated = "use terminal.shell instead")]
-    shell: Option<Program>,
-
-    /// Configuration file imports.
-    ///
-    /// This is never read since the field is directly accessed through the config's
-    /// [`toml::Value`], but still present to prevent unused field warnings.
-    #[config(deprecated = "use general.import instead")]
-    import: Option<Vec<String>>,
-
-    /// Shell startup directory.
-    #[config(deprecated = "use general.working_directory instead")]
-    working_directory: Option<PathBuf>,
-
-    /// Live config reload.
-    #[config(deprecated = "use general.live_config_reload instead")]
-    live_config_reload: Option<bool>,
-
-    /// Offer IPC through a unix socket.
-    #[cfg(unix)]
-    #[config(deprecated = "use general.ipc_socket instead")]
-    pub ipc_socket: Option<bool>,
 }
 
 impl UiConfig {
@@ -129,16 +107,8 @@ impl UiConfig {
 
     /// Derive [`PtyOptions`] from the config.
     pub fn pty_config(&self) -> PtyOptions {
-        let shell = self
-            .terminal
-            .shell
-            .clone()
-            .or_else(|| self.shell.clone())
-            .map(Into::into);
-        let working_directory = self
-            .working_directory
-            .clone()
-            .or_else(|| self.general.working_directory.clone());
+        let shell = self.terminal.shell.clone().map(Into::into);
+        let working_directory = self.general.working_directory.clone();
         PtyOptions {
             working_directory,
             shell,
@@ -164,26 +134,25 @@ impl UiConfig {
 
     #[inline]
     pub fn live_config_reload(&self) -> bool {
-        self.live_config_reload
-            .unwrap_or(self.general.live_config_reload)
+        self.general.live_config_reload
     }
 
     #[cfg(unix)]
     #[inline]
     pub fn ipc_socket(&self) -> bool {
-        self.ipc_socket.unwrap_or(self.general.ipc_socket)
+        self.general.ipc_socket
     }
 }
 
 /// Keyboard configuration.
-#[derive(ConfigDeserialize, Serialize, Default, Clone, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Default, Clone, Debug, PartialEq)]
 struct Keyboard {
     /// Keybindings.
     #[serde(skip_serializing)]
     bindings: KeyBindings,
 }
 
-#[derive(SerdeReplace, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct KeyBindings(Vec<KeyBinding>);
 
 impl Default for KeyBindings {
@@ -234,7 +203,7 @@ where
 }
 
 /// A delta for a point in a 2 dimensional plane.
-#[derive(ConfigDeserialize, Serialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Delta<T: Default> {
     /// Horizontal change.
     pub x: T,
@@ -243,7 +212,7 @@ pub struct Delta<T: Default> {
 }
 
 /// Regex terminal hints.
-#[derive(ConfigDeserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Hints {
     /// Characters for the hint labels.
     alphabet: HintsAlphabet,
@@ -301,7 +270,7 @@ impl Hints {
     }
 }
 
-#[derive(SerdeReplace, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 struct HintsAlphabet(String);
 
 impl Default for HintsAlphabet {
@@ -334,7 +303,7 @@ impl<'de> Deserialize<'de> for HintsAlphabet {
 }
 
 /// Built-in actions for hint mode.
-#[derive(ConfigDeserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub enum HintInternalAction {
     /// Copy the text to the clipboard.
     Copy,
@@ -499,7 +468,7 @@ impl fmt::Debug for HintBinding {
 }
 
 /// Hint mouse highlighting.
-#[derive(ConfigDeserialize, Serialize, Default, Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct HintMouse {
     /// Hint mouse highlighting availability.
     pub enabled: bool,
@@ -599,7 +568,7 @@ impl PartialEq for LazyRegexVariant {
 impl Eq for LazyRegexVariant {}
 
 /// Wrapper around f32 that represents a percentage value between 0.0 and 1.0.
-#[derive(SerdeReplace, Serialize, Clone, Copy, Debug, PartialEq)]
+#[derive(Serialize, Clone, Copy, Debug, PartialEq)]
 pub struct Percentage(f32);
 
 impl Default for Percentage {
@@ -664,6 +633,14 @@ impl From<Program> for Shell {
 }
 
 impl SerdeReplace for Program {
+    fn replace(&mut self, value: toml::Value) -> Result<(), Box<dyn Error>> {
+        *self = Self::deserialize(value)?;
+
+        Ok(())
+    }
+}
+
+impl SerdeReplace for UiConfig {
     fn replace(&mut self, value: toml::Value) -> Result<(), Box<dyn Error>> {
         *self = Self::deserialize(value)?;
 

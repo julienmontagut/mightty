@@ -1,18 +1,16 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
-use alacritty_config_derive::{ConfigDeserialize, SerdeReplace};
-
 use crate::config::bindings::{self, MouseBinding};
 use crate::config::ui_config;
 
-#[derive(ConfigDeserialize, Serialize, Default, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Default, Clone, Debug, PartialEq, Eq)]
 pub struct Mouse {
     pub hide_when_typing: bool,
     #[serde(skip_serializing)]
     pub bindings: MouseBindings,
 }
 
-#[derive(SerdeReplace, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MouseBindings(pub Vec<MouseBinding>);
 
 impl Default for MouseBindings {

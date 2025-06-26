@@ -1,11 +1,9 @@
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Deserializer, Serialize};
 
-use alacritty_config_derive::ConfigDeserialize;
-
 use crate::display::color::{CellRgb, Rgb};
 
-#[derive(ConfigDeserialize, Serialize, Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Colors {
     pub primary: PrimaryColors,
     pub cursor: InvertedCellColors,
@@ -37,19 +35,19 @@ impl Colors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Copy, Clone, Default, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Copy, Clone, Default, Debug, PartialEq, Eq)]
 pub struct LineIndicatorColors {
     pub foreground: Option<Rgb>,
     pub background: Option<Rgb>,
 }
 
-#[derive(ConfigDeserialize, Serialize, Default, Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Default, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct HintColors {
     pub start: HintStartColors,
     pub end: HintEndColors,
 }
 
-#[derive(ConfigDeserialize, Serialize, Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct HintStartColors {
     pub foreground: CellRgb,
     pub background: CellRgb,
@@ -64,7 +62,7 @@ impl Default for HintStartColors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Copy, Clone, Debug, PartialEq, Eq)]
 pub struct HintEndColors {
     pub foreground: CellRgb,
     pub background: CellRgb,
@@ -115,11 +113,11 @@ impl<'de> Deserialize<'de> for ColorIndex {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
 pub struct InvertedCellColors {
-    #[config(alias = "text")]
+    #[serde(alias = "text")]
     pub foreground: CellRgb,
-    #[config(alias = "cursor")]
+    #[serde(alias = "cursor")]
     pub background: CellRgb,
 }
 
@@ -132,13 +130,13 @@ impl Default for InvertedCellColors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Debug, Copy, Clone, Default, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone, Default, PartialEq, Eq)]
 pub struct SearchColors {
     pub focused_match: FocusedMatchColors,
     pub matches: MatchColors,
 }
 
-#[derive(ConfigDeserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
 pub struct FocusedMatchColors {
     pub foreground: CellRgb,
     pub background: CellRgb,
@@ -153,7 +151,7 @@ impl Default for FocusedMatchColors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
 pub struct MatchColors {
     pub foreground: CellRgb,
     pub background: CellRgb,
@@ -168,13 +166,13 @@ impl Default for MatchColors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Debug, Copy, Clone, Default, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone, Default, PartialEq, Eq)]
 pub struct BarColors {
     foreground: Option<Rgb>,
     background: Option<Rgb>,
 }
 
-#[derive(ConfigDeserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct PrimaryColors {
     pub foreground: Rgb,
     pub background: Rgb,
@@ -193,7 +191,7 @@ impl Default for PrimaryColors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct NormalColors {
     pub black: Rgb,
     pub red: Rgb,
@@ -220,7 +218,7 @@ impl Default for NormalColors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct BrightColors {
     pub black: Rgb,
     pub red: Rgb,
@@ -250,7 +248,7 @@ impl Default for BrightColors {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct DimColors {
     pub black: Rgb,
     pub red: Rgb,

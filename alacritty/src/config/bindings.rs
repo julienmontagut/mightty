@@ -4,7 +4,7 @@ use std::fmt::{self, Debug, Display};
 
 use bitflags::bitflags;
 use serde::de::{self, Error as SerdeError, MapAccess, Unexpected, Visitor};
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::rc::Rc;
 use toml::Value as SerdeValue;
 use winit::event::MouseButton;
@@ -12,8 +12,6 @@ use winit::keyboard::{
     Key, KeyCode, KeyLocation as WinitKeyLocation, ModifiersState, NamedKey, PhysicalKey,
 };
 use winit::platform::scancode::PhysicalKeyExtScancode;
-
-use alacritty_config_derive::{ConfigDeserialize, SerdeReplace};
 
 use alacritty_terminal::term::TermMode;
 use alacritty_terminal::vi_mode::ViMotion;
@@ -93,34 +91,34 @@ impl<T: Eq> Binding<T> {
     }
 }
 
-#[derive(ConfigDeserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum Action {
     /// Write an escape sequence.
-    #[config(skip)]
+    #[serde(skip)]
     Esc(String),
 
     /// Run given command.
-    #[config(skip)]
+    #[serde(skip)]
     Command(Program),
 
     /// Regex keyboard hints.
-    #[config(skip)]
+    #[serde(skip)]
     Hint(Rc<Hint>),
 
     /// Move vi mode cursor.
-    #[config(skip)]
+    #[serde(skip)]
     ViMotion(ViMotion),
 
     /// Perform vi mode action.
-    #[config(skip)]
+    #[serde(skip)]
     Vi(ViAction),
 
     /// Perform search mode action.
-    #[config(skip)]
+    #[serde(skip)]
     Search(SearchAction),
 
     /// Perform mouse binding exclusive action.
-    #[config(skip)]
+    #[serde(skip)]
     Mouse(MouseAction),
 
     /// Paste contents of system clipboard.
@@ -302,7 +300,7 @@ impl Display for Action {
 }
 
 /// Vi mode specific actions.
-#[derive(ConfigDeserialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Debug, Copy, Clone, PartialEq, Eq)]
 pub enum ViAction {
     /// Toggle normal vi selection.
     ToggleNormalSelection,
@@ -344,7 +342,7 @@ pub enum ViAction {
 
 /// Search mode specific actions.
 #[allow(clippy::enum_variant_names)]
-#[derive(ConfigDeserialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Debug, Copy, Clone, PartialEq, Eq)]
 pub enum SearchAction {
     /// Move the focus to the next search match.
     SearchFocusNext,
@@ -365,7 +363,7 @@ pub enum SearchAction {
 }
 
 /// Mouse binding specific actions.
-#[derive(ConfigDeserialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Debug, Copy, Clone, PartialEq, Eq)]
 pub enum MouseAction {
     /// Expand the selection to the current mouse cursor position.
     ExpandSelection,
@@ -1212,7 +1210,7 @@ impl<'a> Deserialize<'a> for KeyBinding {
     }
 }
 
-#[derive(SerdeReplace, Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Serialize, Debug, Copy, Clone, Eq, PartialEq)]
 pub struct SerdeViMotion(ViMotion);
 
 impl<'de> Deserialize<'de> for SerdeViMotion {
@@ -1231,7 +1229,7 @@ impl<'de> Deserialize<'de> for SerdeViMotion {
 ///
 /// Our deserialize impl wouldn't be covered by a derive(Deserialize); see the
 /// impl below.
-#[derive(SerdeReplace, Debug, Copy, Clone, Hash, Default, Eq, PartialEq)]
+#[derive(Serialize, Debug, Copy, Clone, Hash, Default, Eq, PartialEq)]
 pub struct ModsWrapper(pub ModifiersState);
 
 impl ModsWrapper {

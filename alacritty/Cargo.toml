@@ -1,7 +1,10 @@
 [package]
 name = "alacritty"
 version = "0.16.0-dev"
-authors = ["Christian Duerr <contact@christianduerr.com>", "Joe Wilm <joe@jwilm.com>"]
+authors = [
+    "Christian Duerr <contact@christianduerr.com>",
+    "Joe Wilm <joe@jwilm.com>",
+]
 license = "Apache-2.0"
 description = "A fast, cross-platform, OpenGL terminal emulator"
 readme = "README.md"
@@ -14,21 +17,17 @@ rust-version.workspace = true
 path = "../alacritty_terminal"
 version = "0.25.1-dev"
 
-[dependencies.alacritty_config_derive]
-path = "../alacritty_config_derive"
-version = "0.2.5-dev"
-
-[dependencies.alacritty_config]
-path = "../alacritty_config"
-version = "0.2.3-dev"
-
 [dependencies]
 ahash = { version = "0.8.6", features = ["no-rng"] }
 bitflags = "2.2.1"
 clap = { version = "4.2.7", features = ["derive", "env"] }
 copypasta = { version = "0.10.1", default-features = false }
 crossfont = "0.8.1"
-glutin = { version = "0.32.2", default-features = false, features = ["egl", "wgl"] }
+figment = { version = "0.10.9", features = ["env", "toml"] }
+glutin = { version = "0.32.2", default-features = false, features = [
+    "egl",
+    "wgl",
+] }
 home = "0.5.5"
 libc = "0.2"
 log = { version = "0.4", features = ["std", "serde"] }
@@ -41,7 +40,10 @@ tempfile = "3.12.0"
 toml = "0.8.2"
 toml_edit = "0.22.21"
 unicode-width = "0.2.0"
-winit = { version = "0.30.9", default-features = false, features = ["rwh_06", "serde"] }
+winit = { version = "0.30.9", default-features = false, features = [
+    "rwh_06",
+    "serde",
+] }
 
 [build-dependencies]
 gl_generator = "0.14.0"
@@ -77,20 +79,14 @@ windows-sys = { version = "0.59", features = [
     "Win32_System_Threading",
     "Win32_System_Console",
     "Win32_Foundation",
-]}
+] }
 
 [target.'cfg(windows)'.build-dependencies]
 embed-resource = "3.0.2"
 
 [features]
 default = ["wayland", "x11"]
-x11 = [
-    "copypasta/x11",
-    "winit/x11",
-    "glutin/x11",
-    "glutin/glx",
-    "png",
-]
+x11 = ["copypasta/x11", "winit/x11", "glutin/x11", "glutin/glx", "png"]
 wayland = [
     "copypasta/wayland",
     "glutin/wayland",

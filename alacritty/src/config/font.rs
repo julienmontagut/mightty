@@ -4,8 +4,6 @@ use crossfont::Size as FontSize;
 use serde::de::{self, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use alacritty_config_derive::{ConfigDeserialize, SerdeReplace};
-
 use crate::config::ui_config::Delta;
 
 /// Font config.
@@ -14,16 +12,13 @@ use crate::config::ui_config::Delta;
 /// field in this struct. It might be nice in the future to have defaults for
 /// each value independently. Alternatively, maybe erroring when the user
 /// doesn't provide complete config is Ok.
-#[derive(ConfigDeserialize, Serialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct Font {
     /// Extra spacing per character.
     pub offset: Delta<i8>,
 
     /// Glyph offset within character cell.
     pub glyph_offset: Delta<i8>,
-
-    #[config(removed = "set the AppleFontSmoothing user default instead")]
-    pub use_thin_strokes: bool,
 
     /// Normal font face.
     normal: FontDescription,
@@ -84,7 +79,6 @@ impl Default for Font {
         Self {
             builtin_box_drawing: true,
             glyph_offset: Default::default(),
-            use_thin_strokes: Default::default(),
             bold_italic: Default::default(),
             italic: Default::default(),
             offset: Default::default(),
@@ -96,7 +90,7 @@ impl Default for Font {
 }
 
 /// Description of the normal font.
-#[derive(ConfigDeserialize, Serialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct FontDescription {
     pub family: String,
     pub style: Option<String>,
@@ -117,7 +111,7 @@ impl Default for FontDescription {
 }
 
 /// Description of the italic and bold font.
-#[derive(ConfigDeserialize, Serialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone, PartialEq, Eq)]
 pub struct SecondaryFontDescription {
     family: Option<String>,
     style: Option<String>,
@@ -135,7 +129,7 @@ impl SecondaryFontDescription {
     }
 }
 
-#[derive(SerdeReplace, Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct Size(FontSize);
 
 impl Default for Size {

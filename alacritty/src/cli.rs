@@ -4,7 +4,6 @@ use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use alacritty_config::SerdeReplace;
 use clap::{ArgAction, Args, Parser, Subcommand, ValueHint};
 use log::{LevelFilter, error};
 use serde::{Deserialize, Serialize};
@@ -13,7 +12,7 @@ use toml::Value;
 use alacritty_terminal::tty::Options as PtyOptions;
 
 use crate::config::UiConfig;
-use crate::config::ui_config::Program;
+use crate::config::ui_config::{Program, SerdeReplace};
 use crate::config::window::{Class, Identity};
 use crate::logging::LOG_TARGET_IPC_CONFIG;
 
@@ -93,7 +92,7 @@ impl Options {
     pub fn override_config(&mut self, config: &mut UiConfig) {
         #[cfg(unix)]
         if self.socket.is_some() {
-            config.ipc_socket = Some(true);
+            config.general.ipc_socket = true;
         }
 
         config.window.embed = self

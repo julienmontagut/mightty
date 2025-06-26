@@ -52,7 +52,7 @@ const ALLOWED_TARGETS: &[&str] = &[
     LOG_TARGET_IPC_CONFIG,
     LOG_TARGET_CONFIG,
     LOG_TARGET_WINIT,
-    "alacritty_config_derive",
+    // "alacritty_config_derive",
     "alacritty_terminal",
     "alacritty",
     "crossfont",

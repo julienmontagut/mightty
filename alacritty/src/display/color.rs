@@ -6,7 +6,6 @@ use log::trace;
 use serde::de::{Error as SerdeError, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use alacritty_config_derive::SerdeReplace;
 use alacritty_terminal::term::color::COUNT;
 use alacritty_terminal::vte::ansi::{NamedColor, Rgb as VteRgb};
 
@@ -179,7 +178,7 @@ impl IndexMut<NamedColor> for List {
     }
 }
 
-#[derive(SerdeReplace, Debug, Eq, PartialEq, Copy, Clone, Default)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
 pub struct Rgb(pub VteRgb);
 
 impl Rgb {
@@ -315,7 +314,7 @@ impl FromStr for Rgb {
 }
 
 /// RGB color optionally referencing the cell's foreground or background.
-#[derive(SerdeReplace, Serialize, Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum CellRgb {
     CellForeground,
     CellBackground,

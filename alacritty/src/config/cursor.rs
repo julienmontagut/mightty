@@ -3,7 +3,6 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use alacritty_config_derive::{ConfigDeserialize, SerdeReplace};
 use alacritty_terminal::vte::ansi::{CursorShape as VteCursorShape, CursorStyle as VteCursorStyle};
 
 use crate::config::ui_config::Percentage;
@@ -14,7 +13,7 @@ const MIN_BLINK_INTERVAL: u64 = 10;
 /// The minimum number of blinks before pausing.
 const MIN_BLINK_CYCLES_BEFORE_PAUSE: u64 = 1;
 
-#[derive(ConfigDeserialize, Serialize, Copy, Clone, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Copy, Clone, Debug, PartialEq)]
 pub struct Cursor {
     pub style: ConfigCursorStyle,
     pub vi_mode_style: Option<ConfigCursorStyle>,
@@ -73,7 +72,7 @@ impl Cursor {
     }
 }
 
-#[derive(SerdeReplace, Deserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Debug, Copy, Clone, PartialEq, Eq)]
 #[serde(untagged, deny_unknown_fields)]
 pub enum ConfigCursorStyle {
     Shape(CursorShape),
@@ -116,7 +115,7 @@ impl From<ConfigCursorStyle> for VteCursorStyle {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Default, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Deserialize, Serialize, Default, Debug, Copy, Clone, PartialEq, Eq)]
 pub enum CursorBlinking {
     Never,
     #[default]
@@ -141,7 +140,7 @@ impl From<CursorBlinking> for bool {
     }
 }
 
-#[derive(ConfigDeserialize, Serialize, Debug, Default, Eq, PartialEq, Copy, Clone, Hash)]
+#[derive(Deserialize, Serialize, Debug, Default, Eq, PartialEq, Copy, Clone, Hash)]
 pub enum CursorShape {
     #[default]
     Block,
