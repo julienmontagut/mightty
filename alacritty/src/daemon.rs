@@ -1,52 +1,21 @@
 use std::ffi::OsStr;
-#[cfg(not(any(target_os = "macos", windows)))]
+#[cfg(not(target_os = "macos"))]
 use std::fs;
 use std::io;
-#[cfg(windows)]
-use std::os::windows::process::CommandExt;
 use std::process::{Command, Stdio};
 
-#[rustfmt::skip]
-#[cfg(not(windows))]
-use {
-    std::env,
-    std::error::Error,
-    std::os::unix::process::CommandExt,
-    std::os::unix::io::RawFd,
-    std::path::PathBuf,
-};
+use std::env;
+use std::error::Error;
+use std::os::unix::process::CommandExt;
+use std::os::unix::io::RawFd;
+use std::path::PathBuf;
 
-#[cfg(not(windows))]
 use libc::pid_t;
-#[cfg(windows)]
-use windows_sys::Win32::System::Threading::{CREATE_NEW_PROCESS_GROUP, CREATE_NO_WINDOW};
 
 #[cfg(target_os = "macos")]
 use crate::macos;
 
 /// Start a new process in the background.
-#[cfg(windows)]
-pub fn spawn_daemon<I, S>(program: &str, args: I) -> io::Result<()>
-where
-    I: IntoIterator<Item = S> + Copy,
-    S: AsRef<OsStr>,
-{
-    // Setting all the I/O handles to null and setting the
-    // CREATE_NEW_PROCESS_GROUP and CREATE_NO_WINDOW has the effect
-    // that console applications will run without opening a new
-    // console window.
-    Command::new(program)
-        .args(args)
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .creation_flags(CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW)
-        .spawn()
-        .map(|_| ())
-}
-
-/// Start a new process in the background.
-#[cfg(not(windows))]
 pub fn spawn_daemon<I, S>(
     program: &str,
     args: I,
@@ -92,7 +61,6 @@ where
 }
 
 /// Get working directory of controlling process.
-#[cfg(not(windows))]
 pub fn foreground_process_path(
     master_fd: RawFd,
     shell_pid: u32,

@@ -113,10 +113,7 @@ impl Logger {
             Err(_) => return,
         };
 
-        #[cfg(not(windows))]
         let env_var = format!("${ALACRITTY_LOG_ENV}");
-        #[cfg(windows)]
-        let env_var = format!("%{}%", ALACRITTY_LOG_ENV);
 
         let message = format!(
             "[{}] {}\nSee log at {} ({})",

@@ -228,15 +228,10 @@ impl Default for Hints {
         let regex = LazyRegex(Rc::new(RefCell::new(pattern)));
         let content = HintContent::new(Some(regex), true);
 
-        #[cfg(not(any(target_os = "macos", windows)))]
+        #[cfg(not(target_os = "macos"))]
         let action = HintAction::Command(Program::Just(String::from("xdg-open")));
         #[cfg(target_os = "macos")]
         let action = HintAction::Command(Program::Just(String::from("open")));
-        #[cfg(windows)]
-        let action = HintAction::Command(Program::WithArgs {
-            program: String::from("cmd"),
-            args: vec!["/c".to_string(), "start".to_string(), "".to_string()],
-        });
 
         Self {
             enabled: vec![Rc::new(Hint {

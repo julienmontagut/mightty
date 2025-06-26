@@ -1,15 +1,15 @@
-#[cfg(not(any(target_os = "macos", windows)))]
+#[cfg(not(target_os = "macos"))]
 use winit::platform::startup_notify::{
     self, EventLoopExtStartupNotify, WindowAttributesExtStartupNotify,
 };
-#[cfg(not(any(target_os = "macos", windows)))]
+#[cfg(not(target_os = "macos"))]
 use winit::window::ActivationToken;
 
-#[cfg(all(not(feature = "x11"), not(any(target_os = "macos", windows))))]
+#[cfg(all(not(feature = "x11"), not(target_os = "macos")))]
 use winit::platform::wayland::WindowAttributesExtWayland;
 
 #[rustfmt::skip]
-#[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+#[cfg(all(feature = "x11", not(target_os = "macos")))]
 use {
     std::io::Cursor,
     winit::platform::x11::{WindowAttributesExtX11, ActiveEventLoopExtX11},
@@ -30,8 +30,6 @@ use {
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 use winit::event_loop::ActiveEventLoop;
 use winit::monitor::MonitorHandle;
-#[cfg(windows)]
-use winit::platform::windows::{IconExtWindows, WindowAttributesExtWindows};
 use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use winit::window::{
     CursorIcon, Fullscreen, ImePurpose, Theme, UserAttentionType, Window as WinitWindow,
@@ -46,12 +44,8 @@ use crate::config::window::{Decorations, Identity, WindowConfig};
 use crate::display::SizeInfo;
 
 /// Window icon for `_NET_WM_ICON` property.
-#[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+#[cfg(all(feature = "x11", not(target_os = "macos")))]
 const WINDOW_ICON: &[u8] = include_bytes!("../../extra/logo/compat/alacritty-term.png");
-
-/// This should match the definition of IDI_ICON from `alacritty.rc`.
-#[cfg(windows)]
-const IDI_ICON: u16 = 0x101;
 
 /// Window errors.
 #[derive(Debug)]
@@ -132,14 +126,14 @@ impl Window {
         identity: &Identity,
         options: &mut WindowOptions,
         #[rustfmt::skip]
-        #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+        #[cfg(all(feature = "x11", not(target_os = "macos")))]
         x11_visual: Option<X11VisualInfo>,
     ) -> Result<Window> {
         let identity = identity.clone();
         let mut window_attributes = Window::get_platform_window(
             &identity,
             &config.window,
-            #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+            #[cfg(all(feature = "x11", not(target_os = "macos")))]
             x11_visual,
             #[cfg(target_os = "macos")]
             &options.window_tabbing_id.take(),
@@ -150,7 +144,7 @@ impl Window {
                 .with_position(PhysicalPosition::<i32>::from((position.x, position.y)));
         }
 
-        #[cfg(not(any(target_os = "macos", windows)))]
+        #[cfg(not(target_os = "macos"))]
         if let Some(token) = options
             .activation_token
             .take()
@@ -165,7 +159,7 @@ impl Window {
         }
 
         // On X11, embed the window inside another if the parent ID has been set.
-        #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+        #[cfg(all(feature = "x11", not(target_os = "macos")))]
         if let Some(parent_window_id) = event_loop.is_x11().then_some(config.window.embed).flatten()
         {
             window_attributes = window_attributes.with_embed_parent_window(parent_window_id);
@@ -280,11 +274,11 @@ impl Window {
         }
     }
 
-    #[cfg(not(any(target_os = "macos", windows)))]
+    #[cfg(not(target_os = "macos"))]
     pub fn get_platform_window(
         identity: &Identity,
         window_config: &WindowConfig,
-        #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))] x11_visual: Option<
+        #[cfg(all(feature = "x11", not(target_os = "macos")))] x11_visual: Option<
             X11VisualInfo,
         >,
     ) -> WindowAttributes {
@@ -315,15 +309,6 @@ impl Window {
         builder
     }
 
-    #[cfg(windows)]
-    pub fn get_platform_window(_: &Identity, window_config: &WindowConfig) -> WindowAttributes {
-        let icon = winit::window::Icon::from_resource(IDI_ICON, None);
-
-        WinitWindow::default_attributes()
-            .with_decorations(window_config.decorations != Decorations::None)
-            .with_window_icon(icon.as_ref().ok().cloned())
-            .with_taskbar_icon(icon.ok())
-    }
 
     #[cfg(target_os = "macos")]
     pub fn get_platform_window(

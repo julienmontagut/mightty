@@ -4,14 +4,13 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Write;
 use std::mem;
-#[cfg(not(windows))]
 use std::os::unix::io::{AsRawFd, RawFd};
 use std::rc::Rc;
 use std::sync::Arc;
 
 use glutin::config::Config as GlutinConfig;
 use glutin::display::GetGlDisplay;
-#[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+#[cfg(all(feature = "x11", not(target_os = "macos")))]
 use glutin::platform::x11::X11GlConfigExt;
 use log::info;
 use serde_json as json;
@@ -59,9 +58,7 @@ pub struct WindowContext {
     touch: TouchPurpose,
     occluded: bool,
     preserve_title: bool,
-    #[cfg(not(windows))]
     master_fd: RawFd,
-    #[cfg(not(windows))]
     shell_pid: u32,
     window_config: ParsedOptions,
     config: Rc<UiConfig>,
@@ -82,14 +79,6 @@ impl WindowContext {
             .window_identity
             .override_identity_config(&mut identity);
 
-        // Windows has different order of GL platform initialization compared to any other platform;
-        // it requires the window first.
-        #[cfg(windows)]
-        let window = Window::new(event_loop, &config, &identity, &mut options)?;
-        #[cfg(windows)]
-        let raw_window_handle = Some(window.raw_window_handle());
-
-        #[cfg(not(windows))]
         let raw_window_handle = None;
 
         let gl_display = renderer::platform::create_gl_display(
@@ -99,13 +88,12 @@ impl WindowContext {
         )?;
         let gl_config = renderer::platform::pick_gl_config(&gl_display, raw_window_handle)?;
 
-        #[cfg(not(windows))]
         let window = Window::new(
             event_loop,
             &config,
             &identity,
             &mut options,
-            #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+            #[cfg(all(feature = "x11", not(target_os = "macos")))]
             gl_config.x11_visual(),
         )?;
 
@@ -139,7 +127,7 @@ impl WindowContext {
             &config,
             &identity,
             &mut options,
-            #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+            #[cfg(all(feature = "x11", not(target_os = "macos")))]
             gl_config.x11_visual(),
         )?;
 
@@ -211,9 +199,7 @@ impl WindowContext {
             display.window.id().into(),
         )?;
 
-        #[cfg(not(windows))]
         let master_fd = pty.file().as_raw_fd();
-        #[cfg(not(windows))]
         let shell_pid = pty.child().id();
 
         // Create the pseudoterminal I/O loop.
@@ -247,9 +233,7 @@ impl WindowContext {
             preserve_title,
             terminal,
             display,
-            #[cfg(not(windows))]
             master_fd,
-            #[cfg(not(windows))]
             shell_pid,
             config,
             notifier: Notifier(loop_tx),
@@ -458,9 +442,7 @@ impl WindowContext {
             dirty: &mut self.dirty,
             occluded: &mut self.occluded,
             terminal: &mut terminal,
-            #[cfg(not(windows))]
             master_fd: self.master_fd,
-            #[cfg(not(windows))]
             shell_pid: self.shell_pid,
             preserve_title: self.preserve_title,
             config: &self.config,
