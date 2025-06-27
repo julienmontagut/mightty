@@ -34,12 +34,7 @@ pub struct Options {
 
     /// Specify alternative configuration file [default:
     /// $XDG_CONFIG_HOME/alacritty/alacritty.toml].
-    #[cfg(not(any(target_os = "macos", windows)))]
-    #[clap(long, value_hint = ValueHint::FilePath)]
-    pub config_file: Option<PathBuf>,
-
-    /// Specify alternative configuration file [default: %APPDATA%\alacritty\alacritty.toml].
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     #[clap(long, value_hint = ValueHint::FilePath)]
     pub config_file: Option<PathBuf>,
 
@@ -309,7 +304,7 @@ pub struct WindowOptions {
     pub window_tabbing_id: Option<String>,
 
     #[clap(skip)]
-    #[cfg(not(any(target_os = "macos", windows)))]
+    #[cfg(not(target_os = "macos"))]
     /// `ActivationToken` that we pass to winit.
     pub activation_token: Option<String>,
 

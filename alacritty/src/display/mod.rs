@@ -40,7 +40,6 @@ use crate::config::UiConfig;
 use crate::config::debug::RendererPreference;
 use crate::config::font::Font;
 use crate::config::window::Dimensions;
-#[cfg(not(windows))]
 use crate::config::window::StartupMode;
 use crate::display::bell::VisualBell;
 use crate::display::color::{List, Rgb};
@@ -504,7 +503,6 @@ impl Display {
         window.focus_window();
 
         #[allow(clippy::single_match)]
-        #[cfg(not(windows))]
         if !_tabbed {
             match config.window.startup_mode {
                 #[cfg(target_os = "macos")]
@@ -621,7 +619,7 @@ impl Display {
     fn swap_buffers(&self) {
         #[allow(clippy::single_match)]
         let res = match (self.surface.deref(), &self.context.deref()) {
-            #[cfg(not(any(target_os = "macos", windows)))]
+            #[cfg(not(target_os = "macos"))]
             (Surface::Egl(surface), PossiblyCurrentContext::Egl(context))
                 if matches!(self.raw_window_handle, RawWindowHandle::Wayland(_))
                     && !self.damage_tracker.debug =>

@@ -192,13 +192,8 @@ impl<T: EventListener, A: ActionContext<T>> Processor<T, A> {
             // Match `Alt` bindings without `Alt` being applied, otherwise they use the
             // composed chars, which are not intuitive to bind.
             //
-            // On Windows, the `Ctrl + Alt` mangles `logical_key` to unidentified values, thus
-            // preventing them from being used in bindings
-            //
-            // For more see https://github.com/rust-windowing/winit/issues/2945.
-            if (cfg!(target_os = "macos") || (cfg!(windows) && mods.control_key()))
-                && mods.alt_key()
-            {
+            // On macOS, handle Alt bindings without Alt being applied to prevent using composed chars
+            if cfg!(target_os = "macos") && mods.alt_key() {
                 key.key_without_modifiers()
             } else {
                 Key::Character(ch.to_lowercase().into())

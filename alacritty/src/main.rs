@@ -7,9 +7,8 @@
 // window for the program.
 // This is silently ignored on non-windows systems.
 // See https://msdn.microsoft.com/en-us/library/4cc7ya5b.aspx for more details.
-#![windows_subsystem = "windows"]
 
-#[cfg(not(any(feature = "x11", feature = "wayland", target_os = "macos", windows)))]
+#[cfg(not(any(feature = "x11", feature = "wayland", target_os = "macos")))]
 compile_error!(r#"at least one of the "x11"/"wayland" features must be enabled"#);
 
 use std::error::Error;
@@ -19,10 +18,8 @@ use std::path::PathBuf;
 use std::{env, fs};
 
 use log::info;
-#[cfg(windows)]
-use windows_sys::Win32::System::Console::{ATTACH_PARENT_PROCESS, AttachConsole, FreeConsole};
 use winit::event_loop::EventLoop;
-#[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+#[cfg(all(feature = "x11", not(target_os = "macos")))]
 use winit::raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
 
 use alacritty_terminal::tty;
@@ -41,8 +38,6 @@ mod logging;
 mod macos;
 mod message_bar;
 mod migrate;
-#[cfg(windows)]
-mod panic;
 mod renderer;
 mod scheduler;
 mod string;
@@ -55,7 +50,7 @@ mod gl {
 
 #[cfg(unix)]
 use crate::cli::MessageOptions;
-#[cfg(not(any(target_os = "macos", windows)))]
+#[cfg(not(target_os = "macos"))]
 use crate::cli::SocketMessage;
 use crate::cli::{Options, Subcommands};
 use crate::config::UiConfig;
@@ -65,16 +60,6 @@ use crate::event::{Event, Processor};
 use crate::macos::locale;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    #[cfg(windows)]
-    panic::attach_handler();
-
-    // When linked with the windows subsystem windows won't automatically attach
-    // to the console of the parent process, so we do it explicitly. This fails
-    // silently if the parent has no console.
-    #[cfg(windows)]
-    unsafe {
-        AttachConsole(ATTACH_PARENT_PROCESS);
-    }
 
     // Load command line options.
     let options = Options::new();
@@ -93,7 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 #[cfg(unix)]
 #[allow(unused_mut)]
 fn msg(mut options: MessageOptions) -> Result<(), Box<dyn Error>> {
-    #[cfg(not(any(target_os = "macos", windows)))]
+    #[cfg(not(target_os = "macos"))]
     if let SocketMessage::CreateWindow(window_options) = &mut options.message {
         window_options.activation_token = env::var("XDG_ACTIVATION_TOKEN")
             .or_else(|_| env::var("DESKTOP_STARTUP_ID"))
@@ -147,7 +132,7 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
     info!("Welcome to Alacritty");
     info!("Version {}", env!("VERSION"));
 
-    #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+    #[cfg(all(feature = "x11", not(target_os = "macos")))]
     info!(
         "Running on {}",
         if matches!(
@@ -159,7 +144,7 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
             "X11"
         }
     );
-    #[cfg(not(any(feature = "x11", target_os = "macos", windows)))]
+    #[cfg(not(any(feature = "x11", target_os = "macos")))]
     info!("Running on Wayland");
 
     // Load configuration file.
@@ -235,11 +220,6 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
         config_monitor.shutdown();
     }
 
-    // Without explicitly detaching the console cmd won't redraw it's prompt.
-    #[cfg(windows)]
-    unsafe {
-        FreeConsole();
-    }
 
     info!("Goodbye");
 

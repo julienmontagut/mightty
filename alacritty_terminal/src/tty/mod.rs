@@ -7,15 +7,8 @@ use std::{env, io};
 
 use polling::{Event, PollMode, Poller};
 
-#[cfg(not(windows))]
 mod unix;
-#[cfg(not(windows))]
 pub use self::unix::*;
-
-#[cfg(windows)]
-pub mod windows;
-#[cfg(windows)]
-pub use self::windows::*;
 
 /// Configuration for the `Pty` interface.
 #[derive(Clone, Debug, PartialEq, Eq, Default)]

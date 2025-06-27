@@ -123,7 +123,7 @@ where
         loop {
             // Read from the PTY.
             match self.pty.reader().read(&mut buf[unprocessed..]) {
-                // This is received on Windows/macOS when no more data is readable from the PTY.
+                // This is received on macOS when no more data is readable from the PTY.
                 Ok(0) if unprocessed == 0 => break,
                 Ok(got) => unprocessed += got,
                 Err(err) => match err.kind() {

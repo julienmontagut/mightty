@@ -3,13 +3,13 @@ use winit::raw_window_handle::RawDisplayHandle;
 
 use alacritty_terminal::term::ClipboardType;
 
-#[cfg(any(feature = "x11", target_os = "macos", windows))]
+#[cfg(any(feature = "x11", target_os = "macos"))]
 use copypasta::ClipboardContext;
 use copypasta::ClipboardProvider;
 use copypasta::nop_clipboard::NopClipboardContext;
-#[cfg(all(feature = "wayland", not(any(target_os = "macos", windows))))]
+#[cfg(all(feature = "wayland", not(target_os = "macos")))]
 use copypasta::wayland_clipboard;
-#[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+#[cfg(all(feature = "x11", not(target_os = "macos")))]
 use copypasta::x11_clipboard::{Primary as X11SelectionClipboard, X11ClipboardContext};
 
 pub struct Clipboard {
@@ -20,7 +20,7 @@ pub struct Clipboard {
 impl Clipboard {
     pub unsafe fn new(display: RawDisplayHandle) -> Self {
         match display {
-            #[cfg(all(feature = "wayland", not(any(target_os = "macos", windows))))]
+            #[cfg(all(feature = "wayland", not(target_os = "macos")))]
             RawDisplayHandle::Wayland(display) => {
                 let (selection, clipboard) =
                     wayland_clipboard::create_clipboards_from_external(display.display.as_ptr());
@@ -45,13 +45,13 @@ impl Clipboard {
 
 impl Default for Clipboard {
     fn default() -> Self {
-        #[cfg(any(target_os = "macos", windows))]
+        #[cfg(target_os = "macos")]
         return Self {
             clipboard: Box::new(ClipboardContext::new().unwrap()),
             selection: None,
         };
 
-        #[cfg(all(feature = "x11", not(any(target_os = "macos", windows))))]
+        #[cfg(all(feature = "x11", not(target_os = "macos")))]
         return Self {
             clipboard: Box::new(ClipboardContext::new().unwrap()),
             selection: Some(Box::new(
@@ -59,7 +59,7 @@ impl Default for Clipboard {
             )),
         };
 
-        #[cfg(not(any(feature = "x11", target_os = "macos", windows)))]
+        #[cfg(not(any(feature = "x11", target_os = "macos")))]
         return Self::new_nop();
     }
 }

@@ -9,7 +9,6 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::error::Error;
 use std::ffi::OsStr;
 use std::fmt::Debug;
-#[cfg(not(windows))]
 use std::os::unix::io::RawFd;
 #[cfg(unix)]
 use std::os::unix::net::UnixStream;
@@ -50,7 +49,6 @@ use crate::cli::{Options as CliOptions, WindowOptions};
 use crate::clipboard::Clipboard;
 use crate::config::ui_config::{HintAction, HintInternalAction};
 use crate::config::{self, UiConfig};
-#[cfg(not(windows))]
 use crate::daemon::foreground_process_path;
 use crate::daemon::spawn_daemon;
 use crate::display::color::Rgb;
@@ -683,9 +681,7 @@ pub struct ActionContext<'a, N, T> {
     pub dirty: &'a mut bool,
     pub occluded: &'a mut bool,
     pub preserve_title: bool,
-    #[cfg(not(windows))]
     pub master_fd: RawFd,
-    #[cfg(not(windows))]
     pub shell_pid: u32,
 }
 
@@ -884,7 +880,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
             }
 
             // On unix, the working directory of the foreground shell is used by `start_daemon`.
-            #[cfg(not(windows))]
             if arg == "--working-directory" {
                 let _ = env_args.next();
                 continue;
@@ -896,7 +891,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
         self.spawn_daemon(&alacritty, &args);
     }
 
-    #[cfg(not(windows))]
     fn create_new_window(&mut self, #[cfg(target_os = "macos")] tabbing_id: Option<String>) {
         let mut options = WindowOptions::default();
         options.terminal_options.working_directory =
@@ -912,23 +906,13 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
             .send_event(Event::new(EventType::CreateWindow(options), None));
     }
 
-    #[cfg(windows)]
-    fn create_new_window(&mut self) {
-        let _ = self.event_proxy.send_event(Event::new(
-            EventType::CreateWindow(WindowOptions::default()),
-            None,
-        ));
-    }
 
     fn spawn_daemon<I, S>(&self, program: &str, args: I)
     where
         I: IntoIterator<Item = S> + Debug + Copy,
         S: AsRef<OsStr>,
     {
-        #[cfg(not(windows))]
         let result = spawn_daemon(program, args, self.master_fd, self.shell_pid);
-        #[cfg(windows)]
-        let result = spawn_daemon(program, args);
 
         match result {
             Ok(_) => debug!("Launched {} with args {:?}", program, args),
