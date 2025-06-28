@@ -46,36 +46,47 @@ const URL_REGEX: &str = "(ipfs:|ipns:|magnet:|mailto:|gemini://|gopher://|https:
 #[derive(Deserialize, Serialize, Default, Clone, Debug, PartialEq)]
 pub struct UiConfig {
     /// Miscellaneous configuration options.
+    #[serde(default)]
     pub general: General,
 
     /// Extra environment variables.
+    #[serde(default)]
     pub env: HashMap<String, String>,
 
     /// How much scrolling history to keep.
+    #[serde(default)]
     pub scrolling: Scrolling,
 
     /// Cursor configuration.
+    #[serde(default)]
     pub cursor: Cursor,
 
     /// Selection configuration.
+    #[serde(default)]
     pub selection: Selection,
 
     /// Font configuration.
+    #[serde(default)]
     pub font: Font,
 
     /// Window configuration.
+    #[serde(default)]
     pub window: WindowConfig,
 
     /// Mouse configuration.
+    #[serde(default)]
     pub mouse: Mouse,
 
     /// Debug options.
+    #[serde(default)]
     pub debug: Debug,
 
     /// Bell configuration.
+    #[serde(default)]
     pub bell: BellConfig,
 
     /// RGB values for colors.
+    #[serde(default)]
     pub colors: Colors,
 
     /// Path where config was loaded from.
@@ -83,12 +94,15 @@ pub struct UiConfig {
     pub config_paths: Vec<PathBuf>,
 
     /// Regex hints for interacting with terminal content.
+    #[serde(default)]
     pub hints: Hints,
 
     /// Config for the alacritty_terminal itself.
+    #[serde(default)]
     pub terminal: Terminal,
 
     /// Keyboard configuration.
+    #[serde(default)]
     keyboard: Keyboard,
 }
 
