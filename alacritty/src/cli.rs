@@ -9,7 +9,7 @@ use log::{LevelFilter, error};
 use serde::{Deserialize, Serialize};
 use toml::Value;
 
-use alacritty_terminal::tty::Options as PtyOptions;
+use mightty_terminal::tty::Options as PtyOptions;
 
 use crate::config::UiConfig;
 use crate::config::ui_config::{Program, SerdeReplace};
@@ -547,7 +547,7 @@ mod tests {
             let generated = String::from_utf8_lossy(&generated);
 
             let mut completion = String::new();
-            let mut file = File::open(format!("../extra/completions/{file}")).unwrap();
+            let mut file = File::open(format!("../../extra/completions/{file}")).unwrap();
             file.read_to_string(&mut completion).unwrap();
 
             assert_eq!(generated, completion);
@@ -555,11 +555,11 @@ mod tests {
 
         // NOTE: Use this to generate new completions.
         //
-        // let mut file = File::create("../extra/completions/alacritty.bash").unwrap();
+        // let mut file = File::create("../../extra/completions/alacritty.bash").unwrap();
         // clap_complete::generate(Shell::Bash, &mut clap, "alacritty", &mut file);
-        // let mut file = File::create("../extra/completions/alacritty.fish").unwrap();
+        // let mut file = File::create("../../extra/completions/alacritty.fish").unwrap();
         // clap_complete::generate(Shell::Fish, &mut clap, "alacritty", &mut file);
-        // let mut file = File::create("../extra/completions/_alacritty").unwrap();
+        // let mut file = File::create("../../extra/completions/_alacritty").unwrap();
         // clap_complete::generate(Shell::Zsh, &mut clap, "alacritty", &mut file);
     }
 }

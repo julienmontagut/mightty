@@ -26,14 +26,14 @@ use winit::keyboard::ModifiersState;
 use winit::platform::macos::ActiveEventLoopExtMacOS;
 use winit::window::CursorIcon;
 
-use alacritty_terminal::event::EventListener;
-use alacritty_terminal::grid::{Dimensions, Scroll};
-use alacritty_terminal::index::{Boundary, Column, Direction, Point, Side};
-use alacritty_terminal::selection::SelectionType;
-use alacritty_terminal::term::search::Match;
-use alacritty_terminal::term::{ClipboardType, Term, TermMode};
-use alacritty_terminal::vi_mode::ViMotion;
-use alacritty_terminal::vte::ansi::{ClearMode, Handler};
+use mightty_terminal::event::EventListener;
+use mightty_terminal::grid::{Dimensions, Scroll};
+use mightty_terminal::index::{Boundary, Column, Direction, Point, Side};
+use mightty_terminal::selection::SelectionType;
+use mightty_terminal::term::search::Match;
+use mightty_terminal::term::{ClipboardType, Term, TermMode};
+use mightty_terminal::vi_mode::ViMotion;
+use mightty_terminal::vte::ansi::{ClearMode, Handler};
 
 use crate::clipboard::Clipboard;
 #[cfg(target_os = "macos")]
@@ -1185,7 +1185,7 @@ mod tests {
     use winit::keyboard::Key;
     use winit::window::WindowId;
 
-    use alacritty_terminal::event::Event as TerminalEvent;
+    use mightty_terminal::event::Event as TerminalEvent;
 
     use crate::config::Binding;
     use crate::message_bar::MessageBuffer;

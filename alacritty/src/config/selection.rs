@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use alacritty_terminal::term::SEMANTIC_ESCAPE_CHARS;
+use mightty_terminal::term::SEMANTIC_ESCAPE_CHARS;
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Selection {

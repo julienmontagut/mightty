@@ -22,7 +22,7 @@ use winit::event_loop::EventLoop;
 #[cfg(all(feature = "x11", not(target_os = "macos")))]
 use winit::raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
 
-use alacritty_terminal::tty;
+use mightty_terminal::tty;
 
 mod cli;
 mod clipboard;
@@ -60,7 +60,6 @@ use crate::event::{Event, Processor};
 use crate::macos::locale;
 
 fn main() -> Result<(), Box<dyn Error>> {
-
     // Load command line options.
     let options = Options::new();
 
@@ -219,7 +218,6 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
     if let Some(config_monitor) = processor.config_monitor.take() {
         config_monitor.shutdown();
     }
-
 
     info!("Goodbye");
 

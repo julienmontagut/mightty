@@ -13,8 +13,8 @@ use winit::keyboard::{
 };
 use winit::platform::scancode::PhysicalKeyExtScancode;
 
-use alacritty_terminal::term::TermMode;
-use alacritty_terminal::vi_mode::ViMotion;
+use mightty_terminal::term::TermMode;
+use mightty_terminal::vi_mode::ViMotion;
 
 use crate::config::ui_config::{Hint, Program, StringVisitor};
 
@@ -578,7 +578,6 @@ fn common_keybindings() -> Vec<KeyBinding> {
 pub fn platform_key_bindings() -> Vec<KeyBinding> {
     common_keybindings()
 }
-
 
 #[cfg(all(target_os = "macos", not(test)))]
 pub fn platform_key_bindings() -> Vec<KeyBinding> {

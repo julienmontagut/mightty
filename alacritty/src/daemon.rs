@@ -6,8 +6,8 @@ use std::process::{Command, Stdio};
 
 use std::env;
 use std::error::Error;
-use std::os::unix::process::CommandExt;
 use std::os::unix::io::RawFd;
+use std::os::unix::process::CommandExt;
 use std::path::PathBuf;
 
 use libc::pid_t;

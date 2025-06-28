@@ -17,9 +17,9 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use unicode_width::UnicodeWidthChar;
 use winit::keyboard::{Key, ModifiersState};
 
-use alacritty_terminal::term::Config as TermConfig;
-use alacritty_terminal::term::search::RegexSearch;
-use alacritty_terminal::tty::{Options as PtyOptions, Shell};
+use mightty_terminal::term::Config as TermConfig;
+use mightty_terminal::term::search::RegexSearch;
+use mightty_terminal::tty::{Options as PtyOptions, Shell};
 
 use crate::config::LOG_TARGET_CONFIG;
 use crate::config::bell::BellConfig;
@@ -663,7 +663,7 @@ impl serde::de::Visitor<'_> for StringVisitor {
 mod tests {
     use super::*;
 
-    use alacritty_terminal::term::test::mock_term;
+    use mightty_terminal::term::test::mock_term;
 
     use crate::display::hint::visible_regex_match_iter;
 

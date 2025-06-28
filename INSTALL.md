@@ -33,7 +33,6 @@ Please refer to the [Dependencies](#dependencies) section.
         13. [Clear Linux](#clear-linux)
         14. [GNU Guix](#gnu-guix)
         15. [Alpine Linux](#alpine-linux)
-        16. [Windows](#windows)
         17. [Other](#other)
 2. [Building](#building)
     1. [Linux/Windows/BSD](#linux--windows--bsd)
@@ -234,11 +233,6 @@ be missing, please open an issue.
 ```sh
 sudo apk add cmake pkgconf freetype-dev fontconfig-dev python3 libxcb-dev
 ```
-
-#### Windows
-
-On windows you will need to have the `{architecture}-pc-windows-msvc` toolchain
-installed as well as [Clang 3.9 or greater](http://releases.llvm.org/download.html).
 
 #### Other
 

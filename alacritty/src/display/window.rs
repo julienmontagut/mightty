@@ -36,7 +36,7 @@ use winit::window::{
     WindowAttributes, WindowId,
 };
 
-use alacritty_terminal::index::Point;
+use mightty_terminal::index::Point;
 
 use crate::cli::WindowOptions;
 use crate::config::UiConfig;
@@ -278,9 +278,7 @@ impl Window {
     pub fn get_platform_window(
         identity: &Identity,
         window_config: &WindowConfig,
-        #[cfg(all(feature = "x11", not(target_os = "macos")))] x11_visual: Option<
-            X11VisualInfo,
-        >,
+        #[cfg(all(feature = "x11", not(target_os = "macos")))] x11_visual: Option<X11VisualInfo>,
     ) -> WindowAttributes {
         #[cfg(feature = "x11")]
         let icon = {
@@ -308,7 +306,6 @@ impl Window {
 
         builder
     }
-
 
     #[cfg(target_os = "macos")]
     pub fn get_platform_window(

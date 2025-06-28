@@ -2610,7 +2610,7 @@ pub mod test {
     /// # Examples
     ///
     /// ```rust
-    /// use alacritty_terminal::term::test::mock_term;
+    /// use mightty_terminal::term::test::mock_term;
     ///
     /// // Create a terminal with the following cells:
     /// //

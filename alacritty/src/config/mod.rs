@@ -398,7 +398,6 @@ pub fn installed_config(suffix: &str) -> Option<PathBuf> {
         })
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -12,7 +12,7 @@ use notify::{
 };
 use winit::event_loop::EventLoopProxy;
 
-use alacritty_terminal::thread;
+use mightty_terminal::thread;
 
 use crate::event::{Event, EventType};
 

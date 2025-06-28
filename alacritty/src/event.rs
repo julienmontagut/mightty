@@ -33,15 +33,15 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow, DeviceEvents, EventLoop, E
 use winit::raw_window_handle::HasDisplayHandle;
 use winit::window::WindowId;
 
-use alacritty_terminal::event::{Event as TerminalEvent, EventListener, Notify};
-use alacritty_terminal::event_loop::Notifier;
-use alacritty_terminal::grid::{BidirectionalIterator, Dimensions, Scroll};
-use alacritty_terminal::index::{Boundary, Column, Direction, Line, Point, Side};
-use alacritty_terminal::selection::{Selection, SelectionType};
-use alacritty_terminal::term::cell::Flags;
-use alacritty_terminal::term::search::{Match, RegexSearch};
-use alacritty_terminal::term::{self, ClipboardType, Term, TermMode};
-use alacritty_terminal::vte::ansi::NamedColor;
+use mightty_terminal::event::{Event as TerminalEvent, EventListener, Notify};
+use mightty_terminal::event_loop::Notifier;
+use mightty_terminal::grid::{BidirectionalIterator, Dimensions, Scroll};
+use mightty_terminal::index::{Boundary, Column, Direction, Line, Point, Side};
+use mightty_terminal::selection::{Selection, SelectionType};
+use mightty_terminal::term::cell::Flags;
+use mightty_terminal::term::search::{Match, RegexSearch};
+use mightty_terminal::term::{self, ClipboardType, Term, TermMode};
+use mightty_terminal::vte::ansi::NamedColor;
 
 #[cfg(unix)]
 use crate::cli::{IpcConfig, ParsedOptions};
@@ -905,7 +905,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
             .event_proxy
             .send_event(Event::new(EventType::CreateWindow(options), None));
     }
-
 
     fn spawn_daemon<I, S>(&self, program: &str, args: I)
     where

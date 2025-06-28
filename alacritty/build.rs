@@ -28,7 +28,6 @@ fn main() {
     )
     .write_bindings(GlobalGenerator, &mut file)
     .unwrap();
-
 }
 
 fn commit_hash() -> Option<String> {

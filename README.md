@@ -2,7 +2,7 @@
 
 <p align="center">
   <img alt="Mightty - A fast, cross-platform, OpenGL terminal emulator"
-       src="https://raw.githubusercontent.com/alacritty/alacritty/master/extra/promo/alacritty-readme.png">
+       src="https://raw.githubusercontent.com/mightty/mightty/master/extra/promo/alacritty-readme.png">
 </p>
 
 ## About

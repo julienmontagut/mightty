@@ -1,21 +1,18 @@
 [package]
-name = "alacritty"
-version = "0.16.0-dev"
-authors = [
-    "Christian Duerr <contact@christianduerr.com>",
-    "Joe Wilm <joe@jwilm.com>",
-]
+name = "mightty"
+version = "0.1.0"
+authors = ["Julien Montagut <_@julienmontagut.com>"]
 license = "Apache-2.0"
 description = "A fast, cross-platform, OpenGL terminal emulator"
 readme = "README.md"
 homepage = "https://alacritty.org"
-repository = "https://github.com/alacritty/alacritty"
+repository = "https://github.com/julienmontagut/mightty"
 edition.workspace = true
 rust-version.workspace = true
 
-[dependencies.alacritty_terminal]
+[dependencies.mightty_terminal]
 path = "../alacritty_terminal"
-version = "0.25.1-dev"
+version = "0.1.0"
 
 [dependencies]
 ahash = { version = "0.8.6", features = ["no-rng"] }
@@ -66,7 +63,6 @@ objc2-app-kit = { version = "0.3.1", default-features = false, features = [
     "NSView",
     "NSWindow",
 ] }
-
 
 [features]
 default = ["wayland", "x11"]
