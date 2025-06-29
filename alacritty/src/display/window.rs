@@ -36,7 +36,7 @@ use winit::window::{
     WindowAttributes, WindowId,
 };
 
-use mightty_terminal::index::Point;
+use crate::terminal::index::Point;
 
 use crate::cli::WindowOptions;
 use crate::config::UiConfig;

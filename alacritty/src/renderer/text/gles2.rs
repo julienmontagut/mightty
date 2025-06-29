@@ -4,7 +4,7 @@ use std::ptr;
 use crossfont::RasterizedGlyph;
 use log::info;
 
-use mightty_terminal::term::cell::Flags;
+use crate::terminal::term::cell::Flags;
 
 use crate::display::SizeInfo;
 use crate::display::content::RenderableCell;

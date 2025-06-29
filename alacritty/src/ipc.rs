@@ -14,7 +14,7 @@ use std::result::Result;
 use winit::event_loop::EventLoopProxy;
 use winit::window::WindowId;
 
-use mightty_terminal::thread;
+use crate::terminal::thread;
 
 use crate::cli::{Options, SocketMessage};
 use crate::event::{Event, EventType};

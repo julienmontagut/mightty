@@ -1,7 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize, de};
 use toml::Value;
 
-use mightty_terminal::term::Osc52;
+use crate::terminal::term::Osc52;
 
 use crate::config::ui_config::{Program, StringVisitor};
 

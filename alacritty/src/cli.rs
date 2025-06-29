@@ -9,7 +9,7 @@ use log::{LevelFilter, error};
 use serde::{Deserialize, Serialize};
 use toml::Value;
 
-use mightty_terminal::tty::Options as PtyOptions;
+use crate::terminal::tty::Options as PtyOptions;
 
 use crate::config::UiConfig;
 use crate::config::ui_config::{Program, SerdeReplace};
@@ -44,7 +44,6 @@ pub struct Options {
     pub config_file: Option<PathBuf>,
 
     /// Path for IPC socket creation.
-    #[cfg(unix)]
     #[clap(long, value_hint = ValueHint::FilePath)]
     pub socket: Option<PathBuf>,
 
@@ -85,7 +84,6 @@ impl Options {
 
     /// Override configuration file with options from the CLI.
     pub fn override_config(&mut self, config: &mut UiConfig) {
-        #[cfg(unix)]
         if self.socket.is_some() {
             config.general.ipc_socket = true;
         }
@@ -231,13 +229,11 @@ impl WindowIdentity {
 /// Available CLI subcommands.
 #[derive(Subcommand, Debug)]
 pub enum Subcommands {
-    #[cfg(unix)]
     Msg(MessageOptions),
     Migrate(MigrateOptions),
 }
 
 /// Send a message to the Alacritty socket.
-#[cfg(unix)]
 #[derive(Args, Debug)]
 pub struct MessageOptions {
     /// IPC socket connection path override.
@@ -250,7 +246,6 @@ pub struct MessageOptions {
 }
 
 /// Available socket messages.
-#[cfg(unix)]
 #[derive(Subcommand, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum SocketMessage {
     /// Create a new window in the same Alacritty process.
@@ -321,7 +316,6 @@ impl WindowOptions {
 }
 
 /// Parameters to the `config` IPC subcommand.
-#[cfg(unix)]
 #[derive(Args, Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct IpcConfig {
     /// Configuration file options [example: 'cursor.style="Beam"'].
@@ -340,7 +334,6 @@ pub struct IpcConfig {
 }
 
 /// Parameters to the `get-config` IPC subcommand.
-#[cfg(unix)]
 #[derive(Args, Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct IpcGetConfig {
     /// Window ID for the config request.

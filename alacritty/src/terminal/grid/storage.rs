@@ -3,11 +3,10 @@ use std::mem;
 use std::mem::MaybeUninit;
 use std::ops::{Index, IndexMut};
 
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use super::Row;
-use crate::index::Line;
+use crate::terminal::index::Line;
 
 /// Maximum number of buffered lines outside of the grid for performance optimization.
 const MAX_CACHE_SIZE: usize = 1_000;
@@ -28,8 +27,7 @@ const MAX_CACHE_SIZE: usize = 1_000;
 /// [`slice::rotate_left`]: https://doc.rust-lang.org/std/primitive.slice.html#method.rotate_left
 /// [`Deref`]: std::ops::Deref
 /// [`zero`]: #structfield.zero
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Storage<T> {
     inner: Vec<Row<T>>,
 
@@ -274,11 +272,11 @@ impl<T> IndexMut<Line> for Storage<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::grid::GridCell;
-    use crate::grid::row::Row;
-    use crate::grid::storage::{MAX_CACHE_SIZE, Storage};
-    use crate::index::{Column, Line};
-    use crate::term::cell::Flags;
+    use crate::terminal::grid::GridCell;
+    use crate::terminal::grid::row::Row;
+    use crate::terminal::grid::storage::{MAX_CACHE_SIZE, Storage};
+    use crate::terminal::index::{Column, Line};
+    use crate::terminal::term::cell::Flags;
 
     impl GridCell for char {
         fn is_empty(&self) -> bool {

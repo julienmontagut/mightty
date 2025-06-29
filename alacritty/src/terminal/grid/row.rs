@@ -4,16 +4,14 @@ use std::cmp::{max, min};
 use std::ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeTo, RangeToInclusive};
 use std::{ptr, slice};
 
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::grid::GridCell;
-use crate::index::Column;
-use crate::term::cell::ResetDiscriminant;
+use crate::terminal::grid::GridCell;
+use crate::terminal::index::Column;
+use crate::terminal::term::cell::ResetDiscriminant;
 
 /// A row in the grid.
-#[derive(Default, Clone, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Row<T> {
     inner: Vec<T>,
 

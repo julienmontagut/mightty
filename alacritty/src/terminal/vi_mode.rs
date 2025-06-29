@@ -1,21 +1,16 @@
 use std::cmp::min;
 
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::event::EventListener;
-use crate::grid::{Dimensions, GridCell};
-use crate::index::{Boundary, Column, Direction, Line, Point, Side};
-use crate::term::Term;
-use crate::term::cell::Flags;
+use crate::terminal::event::EventListener;
+use crate::terminal::grid::{Dimensions, GridCell};
+use crate::terminal::index::{Boundary, Column, Direction, Line, Point, Side};
+use crate::terminal::term::Term;
+use crate::terminal::term::cell::Flags;
 
 /// Possible vi mode motion movements.
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-#[cfg_attr(
-    feature = "serde",
-    derive(Serialize, Deserialize),
-    serde(rename_all = "lowercase")
-)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum ViMotion {
     /// Move up.
     Up,
@@ -429,11 +424,11 @@ fn is_boundary<T>(term: &Term<T>, point: Point, direction: Direction) -> bool {
 mod tests {
     use super::*;
 
-    use crate::event::VoidListener;
-    use crate::index::{Column, Line};
-    use crate::term::test::TermSize;
-    use crate::term::{Config, Term};
-    use crate::vte::ansi::Handler;
+    use crate::terminal::event::VoidListener;
+    use crate::terminal::index::{Column, Line};
+    use crate::terminal::term::test::TermSize;
+    use crate::terminal::term::{Config, Term};
+    use crate::terminal::vte::ansi::Handler;
 
     fn term() -> Term<VoidListener> {
         let size = TermSize::new(20, 20);

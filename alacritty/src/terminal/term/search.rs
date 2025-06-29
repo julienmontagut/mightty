@@ -10,10 +10,10 @@ use regex_automata::nfa::thompson::Config as ThompsonConfig;
 use regex_automata::util::syntax::Config as SyntaxConfig;
 use regex_automata::{Anchored, Input, MatchKind};
 
-use crate::grid::{BidirectionalIterator, Dimensions, GridIterator, Indexed};
-use crate::index::{Boundary, Column, Direction, Point, Side};
-use crate::term::Term;
-use crate::term::cell::{Cell, Flags};
+use crate::terminal::grid::{BidirectionalIterator, Dimensions, GridIterator, Indexed};
+use crate::terminal::index::{Boundary, Column, Direction, Point, Side};
+use crate::terminal::term::Term;
+use crate::terminal::term::cell::{Cell, Flags};
 
 /// Used to match equal brackets, when performing a bracket-pair selection.
 const BRACKET_PAIRS: [(char, char); 4] = [('(', ')'), ('[', ']'), ('{', '}'), ('<', '>')];
@@ -737,9 +737,9 @@ impl<T> Iterator for RegexIter<'_, T> {
 mod tests {
     use super::*;
 
-    use crate::index::{Column, Line};
-    use crate::term::Config;
-    use crate::term::test::{TermSize, mock_term};
+    use crate::terminal::index::{Column, Line};
+    use crate::terminal::term::Config;
+    use crate::terminal::term::test::{TermSize, mock_term};
 
     #[test]
     fn regex_right() {

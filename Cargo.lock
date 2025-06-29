@@ -952,6 +952,7 @@ name = "mightty"
 version = "0.1.0"
 dependencies = [
  "ahash",
+ "base64",
  "bitflags 2.9.1",
  "clap",
  "clap_complete",
@@ -963,43 +964,27 @@ dependencies = [
  "home",
  "libc",
  "log",
- "mightty_terminal",
  "notify",
  "objc2 0.6.1",
  "objc2-app-kit 0.3.1",
  "objc2-foundation 0.3.1",
  "parking_lot",
  "png",
+ "polling",
+ "regex",
+ "regex-automata",
+ "rustix-openpty",
  "serde",
  "serde_json",
  "serde_yaml",
+ "signal-hook",
  "tempfile",
  "toml",
  "toml_edit",
  "unicode-width",
+ "vte",
  "winit",
  "xdg",
-]
-
-[[package]]
-name = "mightty_terminal"
-version = "0.1.0"
-dependencies = [
- "base64",
- "bitflags 2.9.1",
- "home",
- "libc",
- "log",
- "parking_lot",
- "polling",
- "regex-automata",
- "rustix 1.0.7",
- "rustix-openpty",
- "serde",
- "serde_json",
- "signal-hook",
- "unicode-width",
- "vte",
 ]
 
 [[package]]
@@ -1557,6 +1542,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d04b7d0ee6b4a0207a0a7adb104d23ecb0b47d6beae7152d0fa34b692b29fd6"
 dependencies = [
  "bitflags 2.9.1",
+]
+
+[[package]]
+name = "regex"
+version = "1.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b544ef1b4eac5dc2db33ea63606ae9ffcfac26c1416a2806ae0bf5f56b201191"
+dependencies = [
+ "aho-corasick",
+ "memchr",
+ "regex-automata",
+ "regex-syntax",
 ]
 
 [[package]]

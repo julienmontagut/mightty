@@ -22,8 +22,6 @@ use winit::event_loop::EventLoop;
 #[cfg(all(feature = "x11", not(target_os = "macos")))]
 use winit::raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
 
-use mightty_terminal::tty;
-
 mod cli;
 mod clipboard;
 mod config;
@@ -31,7 +29,6 @@ mod daemon;
 mod display;
 mod event;
 mod input;
-#[cfg(unix)]
 mod ipc;
 mod logging;
 #[cfg(target_os = "macos")]
@@ -41,6 +38,7 @@ mod migrate;
 mod renderer;
 mod scheduler;
 mod string;
+mod terminal;
 mod window_context;
 
 mod gl {
@@ -48,7 +46,6 @@ mod gl {
     include!(concat!(env!("OUT_DIR"), "/gl_bindings.rs"));
 }
 
-#[cfg(unix)]
 use crate::cli::MessageOptions;
 #[cfg(not(target_os = "macos"))]
 use crate::cli::SocketMessage;
@@ -58,13 +55,13 @@ use crate::config::monitor::ConfigMonitor;
 use crate::event::{Event, Processor};
 #[cfg(target_os = "macos")]
 use crate::macos::locale;
+use crate::terminal::tty;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Load command line options.
     let options = Options::new();
 
     match options.subcommands {
-        #[cfg(unix)]
         Some(Subcommands::Msg(options)) => msg(options)?,
         Some(Subcommands::Migrate(options)) => migrate::migrate(options),
         None => alacritty(options)?,
@@ -74,7 +71,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 /// `msg` subcommand entrypoint.
-#[cfg(unix)]
 #[allow(unused_mut)]
 fn msg(mut options: MessageOptions) -> Result<(), Box<dyn Error>> {
     #[cfg(not(target_os = "macos"))]
@@ -90,7 +86,6 @@ fn msg(mut options: MessageOptions) -> Result<(), Box<dyn Error>> {
 ///
 /// This stores temporary files to automate their destruction through its `Drop` implementation.
 struct TemporaryFiles {
-    #[cfg(unix)]
     socket_path: Option<PathBuf>,
     log_file: Option<PathBuf>,
 }
@@ -98,7 +93,6 @@ struct TemporaryFiles {
 impl Drop for TemporaryFiles {
     fn drop(&mut self) {
         // Clean up the IPC socket file.
-        #[cfg(unix)]
         if let Some(socket_path) = &self.socket_path {
             let _ = fs::remove_file(socket_path);
         }
@@ -172,7 +166,6 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
     locale::set_locale_environment();
 
     // Create the IPC socket listener.
-    #[cfg(unix)]
     let socket_path = if config.ipc_socket() {
         match ipc::spawn_ipc_socket(&options, window_event_loop.create_proxy()) {
             Ok(path) => Some(path),
@@ -189,7 +182,6 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
     // Setup automatic RAII cleanup for our files.
     let log_cleanup = log_file.filter(|_| !config.debug.persistent_logging);
     let _files = TemporaryFiles {
-        #[cfg(unix)]
         socket_path,
         log_file: log_cleanup,
     };

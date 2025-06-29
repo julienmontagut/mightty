@@ -4,7 +4,6 @@ use std::ops::{Index, IndexMut, Range};
 use std::sync::Arc;
 use std::{cmp, mem, ptr, slice, str};
 
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use base64::Engine;
@@ -13,14 +12,14 @@ use bitflags::bitflags;
 use log::{debug, trace};
 use unicode_width::UnicodeWidthChar;
 
-use crate::event::{Event, EventListener};
-use crate::grid::{Dimensions, Grid, GridIterator, Scroll};
-use crate::index::{self, Boundary, Column, Direction, Line, Point, Side};
-use crate::selection::{Selection, SelectionRange, SelectionType};
-use crate::term::cell::{Cell, Flags, LineLength};
-use crate::term::color::Colors;
-use crate::vi_mode::{ViModeCursor, ViMotion};
-use crate::vte::ansi::{
+use crate::terminal::event::{Event, EventListener};
+use crate::terminal::grid::{Dimensions, Grid, GridIterator, Scroll};
+use crate::terminal::index::{self, Boundary, Column, Direction, Line, Point, Side};
+use crate::terminal::selection::{Selection, SelectionRange, SelectionType};
+use crate::terminal::term::cell::{Cell, Flags, LineLength};
+use crate::terminal::term::color::Colors;
+use crate::terminal::vi_mode::{ViModeCursor, ViMotion};
+use crate::terminal::vte::ansi::{
     self, Attr, CharsetIndex, Color, CursorShape, CursorStyle, Handler, Hyperlink, KeyboardModes,
     KeyboardModesApplyBehavior, NamedColor, NamedMode, NamedPrivateMode, PrivateMode, Rgb,
     StandardCharset,
@@ -381,12 +380,8 @@ impl Default for Config {
 }
 
 /// OSC 52 behavior.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-#[cfg_attr(
-    feature = "serde",
-    derive(Serialize, Deserialize),
-    serde(rename_all = "lowercase")
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Osc52 {
     /// The handling of the escape sequence is disabled.
     Disabled,
@@ -692,6 +687,7 @@ impl<T> Term<T> {
     }
 
     /// Mutable access to the raw grid data structure.
+    #[allow(dead_code)]
     pub fn grid_mut(&mut self) -> &mut Grid<Cell> {
         &mut self.grid
     }
@@ -2569,12 +2565,11 @@ impl<'a> RenderableContent<'a> {
 pub mod test {
     use super::*;
 
-    #[cfg(feature = "serde")]
     use serde::{Deserialize, Serialize};
 
-    use crate::event::VoidListener;
+    use crate::terminal::event::VoidListener;
 
-    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+    #[derive(Serialize, Deserialize)]
     pub struct TermSize {
         pub columns: usize,
         pub screen_lines: usize,
@@ -2610,7 +2605,7 @@ pub mod test {
     /// # Examples
     ///
     /// ```rust
-    /// use mightty_terminal::term::test::mock_term;
+    /// use mightty::terminal::term::test::mock_term;
     ///
     /// // Create a terminal with the following cells:
     /// //
@@ -2622,6 +2617,7 @@ pub mod test {
     ///     hello\n:)\r\ntest",
     /// );
     /// ```
+    #[allow(dead_code)]
     pub fn mock_term(content: &str) -> Term<VoidListener> {
         let lines: Vec<&str> = content.split('\n').collect();
         let num_cols = lines
@@ -2677,13 +2673,13 @@ mod tests {
 
     use std::mem;
 
-    use crate::event::VoidListener;
-    use crate::grid::{Grid, Scroll};
-    use crate::index::{Column, Point, Side};
-    use crate::selection::{Selection, SelectionType};
-    use crate::term::cell::{Cell, Flags};
-    use crate::term::test::TermSize;
-    use crate::vte::ansi::{self, CharsetIndex, Handler, StandardCharset};
+    use crate::terminal::event::VoidListener;
+    use crate::terminal::grid::{Grid, Scroll};
+    use crate::terminal::index::{Column, Point, Side};
+    use crate::terminal::selection::{Selection, SelectionType};
+    use crate::terminal::term::cell::{Cell, Flags};
+    use crate::terminal::term::test::TermSize;
+    use crate::terminal::vte::ansi::{self, CharsetIndex, Handler, StandardCharset};
 
     #[test]
     fn scroll_display_page_up() {
@@ -2967,7 +2963,6 @@ mod tests {
     /// This test is in the term module as opposed to the grid since we want to
     /// test this property with a T=Cell.
     #[test]
-    #[cfg(feature = "serde")]
     fn grid_serde() {
         let grid: Grid<Cell> = Grid::new(24, 80, 0);
         let serialized = serde_json::to_string(&grid).expect("ser");

@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
-use mightty_terminal::vte::ansi::{CursorShape as VteCursorShape, CursorStyle as VteCursorStyle};
+use crate::terminal::vte::ansi::{CursorShape as VteCursorShape, CursorStyle as VteCursorStyle};
 
 use crate::config::ui_config::Percentage;
 

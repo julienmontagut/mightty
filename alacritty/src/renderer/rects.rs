@@ -5,9 +5,9 @@ use ahash::RandomState;
 use crossfont::Metrics;
 use log::info;
 
-use mightty_terminal::grid::Dimensions;
-use mightty_terminal::index::{Column, Point};
-use mightty_terminal::term::cell::Flags;
+use crate::terminal::grid::Dimensions;
+use crate::terminal::index::{Column, Point};
+use crate::terminal::term::cell::Flags;
 
 use crate::display::SizeInfo;
 use crate::display::color::Rgb;

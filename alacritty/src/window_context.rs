@@ -19,14 +19,14 @@ use winit::event_loop::{ActiveEventLoop, EventLoopProxy};
 use winit::raw_window_handle::HasDisplayHandle;
 use winit::window::WindowId;
 
-use mightty_terminal::event::Event as TerminalEvent;
-use mightty_terminal::event_loop::{EventLoop as PtyEventLoop, Msg, Notifier};
-use mightty_terminal::grid::{Dimensions, Scroll};
-use mightty_terminal::index::Direction;
-use mightty_terminal::sync::FairMutex;
-use mightty_terminal::term::test::TermSize;
-use mightty_terminal::term::{Term, TermMode};
-use mightty_terminal::tty;
+use crate::terminal::event::Event as TerminalEvent;
+use crate::terminal::event_loop::{EventLoop as PtyEventLoop, Msg, Notifier};
+use crate::terminal::grid::{Dimensions, Scroll};
+use crate::terminal::index::Direction;
+use crate::terminal::sync::FairMutex;
+use crate::terminal::term::test::TermSize;
+use crate::terminal::term::{Term, TermMode};
+use crate::terminal::tty;
 
 use crate::cli::{ParsedOptions, WindowOptions};
 use crate::clipboard::Clipboard;
@@ -36,7 +36,6 @@ use crate::display::window::Window;
 use crate::event::{
     ActionContext, Event, EventProxy, InlineSearchState, Mouse, SearchState, TouchPurpose,
 };
-#[cfg(unix)]
 use crate::logging::LOG_TARGET_IPC_CONFIG;
 use crate::message_bar::MessageBuffer;
 use crate::scheduler::Scheduler;
@@ -333,13 +332,11 @@ impl WindowContext {
     }
 
     /// Get reference to the window's configuration.
-    #[cfg(unix)]
     pub fn config(&self) -> &UiConfig {
         &self.config
     }
 
     /// Clear the window config overrides.
-    #[cfg(unix)]
     pub fn reset_window_config(&mut self, config: Rc<UiConfig>) {
         // Clear previous window errors.
         self.message_buffer.remove_target(LOG_TARGET_IPC_CONFIG);
@@ -351,7 +348,6 @@ impl WindowContext {
     }
 
     /// Add new window config overrides.
-    #[cfg(unix)]
     pub fn add_window_config(&mut self, config: Rc<UiConfig>, options: &ParsedOptions) {
         // Clear previous window errors.
         self.message_buffer.remove_target(LOG_TARGET_IPC_CONFIG);

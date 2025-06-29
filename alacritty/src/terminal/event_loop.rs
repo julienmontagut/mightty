@@ -14,10 +14,10 @@ use std::time::Instant;
 use log::error;
 use polling::{Event as PollingEvent, Events, PollMode};
 
-use crate::event::{self, Event, EventListener, WindowSize};
-use crate::sync::FairMutex;
-use crate::term::Term;
-use crate::{thread, tty};
+use crate::terminal::event::{self, Event, EventListener, WindowSize};
+use crate::terminal::sync::FairMutex;
+use crate::terminal::term::Term;
+use crate::terminal::{thread, tty};
 use vte::ansi;
 
 /// Max bytes to read from the PTY before forced terminal synchronization.

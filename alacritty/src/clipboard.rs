@@ -1,7 +1,7 @@
 use log::{debug, warn};
 use winit::raw_window_handle::RawDisplayHandle;
 
-use mightty_terminal::term::ClipboardType;
+use crate::terminal::term::ClipboardType;
 
 #[cfg(any(feature = "x11", target_os = "macos"))]
 use copypasta::ClipboardContext;

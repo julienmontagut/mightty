@@ -13,8 +13,8 @@ use winit::keyboard::{
 };
 use winit::platform::scancode::PhysicalKeyExtScancode;
 
-use mightty_terminal::term::TermMode;
-use mightty_terminal::vi_mode::ViMotion;
+use crate::terminal::term::TermMode;
+use crate::terminal::vi_mode::ViMotion;
 
 use crate::config::ui_config::{Hint, Program, StringVisitor};
 

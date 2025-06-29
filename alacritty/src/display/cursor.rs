@@ -1,6 +1,6 @@
 //! Convert a cursor into an iterator of rects.
 
-use mightty_terminal::vte::ansi::CursorShape;
+use crate::terminal::vte::ansi::CursorShape;
 
 use crate::display::SizeInfo;
 use crate::display::color::Rgb;

@@ -9,11 +9,11 @@ use std::cmp::min;
 use std::mem;
 use std::ops::{Bound, Range, RangeBounds};
 
-use crate::grid::{Dimensions, GridCell, Indexed};
-use crate::index::{Boundary, Column, Line, Point, Side};
-use crate::term::Term;
-use crate::term::cell::{Cell, Flags};
-use crate::vte::ansi::CursorShape;
+use crate::terminal::grid::{Dimensions, GridCell, Indexed};
+use crate::terminal::index::{Boundary, Column, Line, Point, Side};
+use crate::terminal::term::Term;
+use crate::terminal::term::cell::{Cell, Flags};
+use crate::terminal::vte::ansi::CursorShape;
 
 /// A Point and side within that point.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -40,6 +40,7 @@ pub struct SelectionRange {
 }
 
 impl SelectionRange {
+    #[allow(dead_code)]
     pub fn new(start: Point, end: Point, is_block: bool) -> Self {
         assert!(start <= end);
         Self {
@@ -423,9 +424,9 @@ impl Selection {
 mod tests {
     use super::*;
 
-    use crate::index::{Column, Point, Side};
-    use crate::term::test::TermSize;
-    use crate::term::{Config, Term};
+    use crate::terminal::index::{Column, Point, Side};
+    use crate::terminal::term::test::TermSize;
+    use crate::terminal::term::{Config, Term};
 
     fn term(height: usize, width: usize) -> Term<()> {
         let size = TermSize::new(width, height);

@@ -7,8 +7,8 @@ use winit::keyboard::{Key, KeyLocation, ModifiersState, NamedKey};
 #[cfg(target_os = "macos")]
 use winit::platform::macos::OptionAsAlt;
 
-use mightty_terminal::event::EventListener;
-use mightty_terminal::term::TermMode;
+use crate::terminal::event::EventListener;
+use crate::terminal::term::TermMode;
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 
 use crate::config::{Action, BindingKey, BindingMode, KeyBinding};

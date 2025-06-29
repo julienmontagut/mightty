@@ -1,4 +1,3 @@
-#![cfg(feature = "serde")]
 use serde::Deserialize;
 use serde_json as json;
 
@@ -6,13 +5,13 @@ use std::fs::{self, File};
 use std::io::Read;
 use std::path::Path;
 
-use mightty_terminal::event::{Event, EventListener};
-use mightty_terminal::grid::{Dimensions, Grid};
-use mightty_terminal::index::{Column, Line};
-use mightty_terminal::term::cell::Cell;
-use mightty_terminal::term::test::TermSize;
-use mightty_terminal::term::{Config, Term};
-use mightty_terminal::vte::ansi;
+use mightty::terminal::event::{Event, EventListener};
+use mightty::terminal::grid::{Dimensions, Grid};
+use mightty::terminal::index::{Column, Line};
+use mightty::terminal::term::cell::Cell;
+use mightty::terminal::term::test::TermSize;
+use mightty::terminal::term::{Config, Term};
+use vte::ansi;
 
 macro_rules! ref_tests {
     ($($name:ident)*) => {

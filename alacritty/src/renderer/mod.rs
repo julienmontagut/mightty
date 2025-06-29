@@ -12,8 +12,8 @@ use glutin::display::{GetGlDisplay, GlDisplay};
 use log::{LevelFilter, debug, info};
 use unicode_width::UnicodeWidthChar;
 
-use mightty_terminal::index::Point;
-use mightty_terminal::term::cell::Flags;
+use crate::terminal::index::Point;
+use crate::terminal::term::cell::Flags;
 
 use crate::config::debug::RendererPreference;
 use crate::display::SizeInfo;

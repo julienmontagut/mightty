@@ -10,11 +10,9 @@ use std::error::Error;
 use std::ffi::OsStr;
 use std::fmt::Debug;
 use std::os::unix::io::RawFd;
-#[cfg(unix)]
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 use std::rc::Rc;
-#[cfg(unix)]
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use std::{env, f32, mem};
@@ -33,17 +31,16 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow, DeviceEvents, EventLoop, E
 use winit::raw_window_handle::HasDisplayHandle;
 use winit::window::WindowId;
 
-use mightty_terminal::event::{Event as TerminalEvent, EventListener, Notify};
-use mightty_terminal::event_loop::Notifier;
-use mightty_terminal::grid::{BidirectionalIterator, Dimensions, Scroll};
-use mightty_terminal::index::{Boundary, Column, Direction, Line, Point, Side};
-use mightty_terminal::selection::{Selection, SelectionType};
-use mightty_terminal::term::cell::Flags;
-use mightty_terminal::term::search::{Match, RegexSearch};
-use mightty_terminal::term::{self, ClipboardType, Term, TermMode};
-use mightty_terminal::vte::ansi::NamedColor;
+use crate::terminal::event::{Event as TerminalEvent, EventListener, Notify};
+use crate::terminal::event_loop::Notifier;
+use crate::terminal::grid::{BidirectionalIterator, Dimensions, Scroll};
+use crate::terminal::index::{Boundary, Column, Direction, Line, Point, Side};
+use crate::terminal::selection::{Selection, SelectionType};
+use crate::terminal::term::cell::Flags;
+use crate::terminal::term::search::{Match, RegexSearch};
+use crate::terminal::term::{self, ClipboardType, Term, TermMode};
+use crate::terminal::vte::ansi::NamedColor;
 
-#[cfg(unix)]
 use crate::cli::{IpcConfig, ParsedOptions};
 use crate::cli::{Options as CliOptions, WindowOptions};
 use crate::clipboard::Clipboard;
@@ -56,7 +53,6 @@ use crate::display::hint::HintMatch;
 use crate::display::window::Window;
 use crate::display::{Display, Preedit, SizeInfo};
 use crate::input::{self, ActionContext as _, FONT_SIZE_STEP};
-#[cfg(unix)]
 use crate::ipc::{self, SocketReply};
 use crate::logging::{LOG_TARGET_CONFIG, LOG_TARGET_WINIT};
 use crate::message_bar::{Message, MessageBuffer};
@@ -89,7 +85,6 @@ pub struct Processor {
     windows: HashMap<WindowId, WindowContext, RandomState>,
     proxy: EventLoopProxy<Event>,
     gl_config: Option<GlutinConfig>,
-    #[cfg(unix)]
     global_ipc_options: ParsedOptions,
     cli_options: CliOptions,
     config: Rc<UiConfig>,
@@ -133,7 +128,6 @@ impl Processor {
             config: Rc::new(config),
             clipboard,
             windows: Default::default(),
-            #[cfg(unix)]
             global_ipc_options: Default::default(),
             config_monitor,
         }
@@ -171,7 +165,6 @@ impl Processor {
 
         // Override config with CLI/IPC options.
         let mut config_overrides = options.config_overrides();
-        #[cfg(unix)]
         config_overrides.extend_from_slice(&self.global_ipc_options);
         let mut config = self.config.clone();
         config = config_overrides.override_config_rc(config);
@@ -288,7 +281,6 @@ impl ApplicationHandler<Event> for Processor {
         // Handle events which don't mandate the WindowId.
         match (event.payload, event.window_id.as_ref()) {
             // Process IPC config update.
-            #[cfg(unix)]
             (EventType::IpcConfig(ipc_config), window_id) => {
                 // Try and parse options as toml.
                 let mut options = ParsedOptions::from_options(&ipc_config.options);
@@ -316,7 +308,6 @@ impl ApplicationHandler<Event> for Processor {
                 }
             }
             // Process IPC config requests.
-            #[cfg(unix)]
             (EventType::IpcGetConfig(stream), window_id) => {
                 // Get the config for the requested window ID.
                 let config = match self.windows.iter().find(|(id, _)| window_id == Some(*id)) {
@@ -548,9 +539,7 @@ pub enum EventType {
     Message(Message),
     Scroll(Scroll),
     CreateWindow(WindowOptions),
-    #[cfg(unix)]
     IpcConfig(IpcConfig),
-    #[cfg(unix)]
     IpcGetConfig(Arc<UnixStream>),
     BlinkCursor,
     BlinkCursorTimeout,
@@ -1958,7 +1947,6 @@ impl input::Processor<EventProxy, ActionContext<'_, Notifier, EventProxy>> {
                     TerminalEvent::CursorBlinkingChange => self.ctx.update_cursor_blinking(),
                     TerminalEvent::Exit | TerminalEvent::ChildExit(_) | TerminalEvent::Wakeup => (),
                 },
-                #[cfg(unix)]
                 EventType::IpcConfig(_) | EventType::IpcGetConfig(..) => (),
                 EventType::Message(_)
                 | EventType::ConfigReload(_)

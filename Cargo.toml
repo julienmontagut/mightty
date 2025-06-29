@@ -1,8 +1,5 @@
 [workspace]
-members = [
-    "alacritty",
-    "alacritty_terminal",
-]
+members = ["alacritty"]
 resolver = "3"
 
 [workspace.package]

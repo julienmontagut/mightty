@@ -3,11 +3,11 @@
 use std::cmp::{Ordering, max, min};
 use std::mem;
 
-use crate::index::{Boundary, Column, Line};
-use crate::term::cell::{Flags, ResetDiscriminant};
+use crate::terminal::index::{Boundary, Column, Line};
+use crate::terminal::term::cell::{Flags, ResetDiscriminant};
 
-use crate::grid::row::Row;
-use crate::grid::{Dimensions, Grid, GridCell};
+use crate::terminal::grid::row::Row;
+use crate::terminal::grid::{Dimensions, Grid, GridCell};
 
 impl<T: GridCell + Default + PartialEq> Grid<T> {
     /// Resize the grid's width and/or height.

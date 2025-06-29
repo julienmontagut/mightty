@@ -3,9 +3,9 @@ use std::{cmp, mem};
 
 use glutin::surface::Rect;
 
-use mightty_terminal::index::Point;
-use mightty_terminal::selection::SelectionRange;
-use mightty_terminal::term::{LineDamageBounds, TermDamageIterator};
+use crate::terminal::index::Point;
+use crate::terminal::selection::SelectionRange;
+use crate::terminal::term::{LineDamageBounds, TermDamageIterator};
 
 use crate::display::SizeInfo;
 

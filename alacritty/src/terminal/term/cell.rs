@@ -2,16 +2,14 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use bitflags::bitflags;
-#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::grid::{self, GridCell};
-use crate::index::Column;
-use crate::vte::ansi::{Color, Hyperlink as VteHyperlink, NamedColor};
+use crate::terminal::grid::{self, GridCell};
+use crate::terminal::index::Column;
+use crate::terminal::vte::ansi::{Color, Hyperlink as VteHyperlink, NamedColor};
 
 bitflags! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
     pub struct Flags: u16 {
         const INVERSE                   = 0b0000_0000_0000_0001;
         const BOLD                      = 0b0000_0000_0000_0010;
@@ -40,7 +38,6 @@ bitflags! {
 static HYPERLINK_ID_SUFFIX: AtomicU32 = AtomicU32::new(0);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Hyperlink {
     inner: Arc<HyperlinkInner>,
 }
@@ -75,8 +72,85 @@ impl From<Hyperlink> for VteHyperlink {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+impl Serialize for Hyperlink {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.inner.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Hyperlink {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::{self, MapAccess, Visitor};
+        use std::fmt;
+
+        struct HyperlinkVisitor;
+
+        impl<'de> Visitor<'de> for HyperlinkVisitor {
+            type Value = Hyperlink;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("a hyperlink object")
+            }
+
+            fn visit_map<V>(self, mut map: V) -> Result<Hyperlink, V::Error>
+            where
+                V: MapAccess<'de>,
+            {
+                let mut inner: Option<HyperlinkInner> = None;
+                let mut id: Option<String> = None;
+                let mut uri: Option<String> = None;
+
+                while let Some(key) = map.next_key::<String>()? {
+                    match key.as_str() {
+                        "inner" => {
+                            if inner.is_some() {
+                                return Err(de::Error::duplicate_field("inner"));
+                            }
+                            inner = Some(map.next_value()?);
+                        }
+                        "id" => {
+                            if id.is_some() {
+                                return Err(de::Error::duplicate_field("id"));
+                            }
+                            id = Some(map.next_value()?);
+                        }
+                        "uri" => {
+                            if uri.is_some() {
+                                return Err(de::Error::duplicate_field("uri"));
+                            }
+                            uri = Some(map.next_value()?);
+                        }
+                        _ => {
+                            let _: serde::de::IgnoredAny = map.next_value()?;
+                        }
+                    }
+                }
+
+                let inner = if let Some(inner) = inner {
+                    inner
+                } else if let (Some(id), Some(uri)) = (id, uri) {
+                    HyperlinkInner { id, uri }
+                } else {
+                    return Err(de::Error::missing_field("id or uri"));
+                };
+
+                Ok(Hyperlink {
+                    inner: Arc::new(inner),
+                })
+            }
+        }
+
+        deserializer.deserialize_map(HyperlinkVisitor)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 struct HyperlinkInner {
     /// Identifier for the given hyperlink.
     id: String,
@@ -125,8 +199,7 @@ impl ResetDiscriminant<Color> for Cell {
 /// This storage is reserved for cell attributes which are rarely set. This allows reducing the
 /// allocation required ahead of time for every cell, with some additional overhead when the extra
 /// storage is actually required.
-#[derive(Default, Debug, Clone, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Default, Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CellExtra {
     zerowidth: Vec<char>,
     underline_color: Option<Color>,
@@ -135,7 +208,6 @@ pub struct CellExtra {
 
 /// Content and attributes of a single cell in the terminal grid.
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Cell {
     pub c: char,
     pub fg: Color,
@@ -270,6 +342,52 @@ impl From<Color> for Cell {
     }
 }
 
+impl Serialize for Cell {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("Cell", 5)?;
+        state.serialize_field("c", &self.c)?;
+        state.serialize_field("fg", &self.fg)?;
+        state.serialize_field("bg", &self.bg)?;
+        state.serialize_field("flags", &self.flags)?;
+
+        // Serialize Arc<CellExtra> as Option<CellExtra>
+        let extra_ref = self.extra.as_ref().map(|arc| arc.as_ref());
+        state.serialize_field("extra", &extra_ref)?;
+
+        state.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for Cell {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct CellHelper {
+            c: char,
+            fg: Color,
+            bg: Color,
+            flags: Flags,
+            extra: Option<CellExtra>,
+        }
+
+        let helper = CellHelper::deserialize(deserializer)?;
+        Ok(Cell {
+            c: helper.c,
+            fg: helper.fg,
+            bg: helper.bg,
+            flags: helper.flags,
+            extra: helper.extra.map(Arc::new),
+        })
+    }
+}
+
 /// Get the length of occupied cells in a line.
 pub trait LineLength {
     /// Calculate the occupied line length.
@@ -303,8 +421,8 @@ mod tests {
 
     use std::mem;
 
-    use crate::grid::Row;
-    use crate::index::Column;
+    use crate::terminal::grid::Row;
+    use crate::terminal::index::Column;
 
     #[test]
     fn cell_size_is_below_cap() {

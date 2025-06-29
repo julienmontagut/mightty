@@ -17,9 +17,9 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use unicode_width::UnicodeWidthChar;
 use winit::keyboard::{Key, ModifiersState};
 
-use mightty_terminal::term::Config as TermConfig;
-use mightty_terminal::term::search::RegexSearch;
-use mightty_terminal::tty::{Options as PtyOptions, Shell};
+use crate::terminal::term::Config as TermConfig;
+use crate::terminal::term::search::RegexSearch;
+use crate::terminal::tty::{Options as PtyOptions, Shell};
 
 use crate::config::LOG_TARGET_CONFIG;
 use crate::config::bell::BellConfig;
@@ -151,7 +151,6 @@ impl UiConfig {
         self.general.live_config_reload
     }
 
-    #[cfg(unix)]
     #[inline]
     pub fn ipc_socket(&self) -> bool {
         self.general.ipc_socket
@@ -226,7 +225,7 @@ pub struct Delta<T: Default> {
 }
 
 /// Regex terminal hints.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Hints {
     /// Characters for the hint labels.
     alphabet: HintsAlphabet,
@@ -276,6 +275,45 @@ impl Hints {
     /// Characters for the hint labels.
     pub fn alphabet(&self) -> &str {
         &self.alphabet.0
+    }
+}
+
+impl<'de> Deserialize<'de> for Hints {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct HintsHelper {
+            #[serde(default)]
+            alphabet: HintsAlphabet,
+            #[serde(default)]
+            enabled: Vec<Hint>,
+        }
+
+        let helper = HintsHelper::deserialize(deserializer)?;
+        Ok(Hints {
+            alphabet: helper.alphabet,
+            enabled: helper.enabled.into_iter().map(Rc::new).collect(),
+        })
+    }
+}
+
+impl Serialize for Hints {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("Hints", 2)?;
+        state.serialize_field("alphabet", &self.alphabet)?;
+
+        // Convert Vec<Rc<Hint>> to Vec<&Hint> for serialization
+        let enabled_refs: Vec<&Hint> = self.enabled.iter().map(|rc| rc.as_ref()).collect();
+        state.serialize_field("enabled", &enabled_refs)?;
+
+        state.end()
     }
 }
 
@@ -677,7 +715,7 @@ impl serde::de::Visitor<'_> for StringVisitor {
 mod tests {
     use super::*;
 
-    use mightty_terminal::term::test::mock_term;
+    use crate::terminal::term::test::mock_term;
 
     use crate::display::hint::visible_regex_match_iter;
 

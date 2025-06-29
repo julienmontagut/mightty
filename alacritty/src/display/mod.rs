@@ -26,15 +26,15 @@ use winit::window::CursorIcon;
 use crossfont::{Rasterize, Rasterizer, Size as FontSize};
 use unicode_width::UnicodeWidthChar;
 
-use mightty_terminal::event::{EventListener, OnResize, WindowSize};
-use mightty_terminal::grid::Dimensions as TermDimensions;
-use mightty_terminal::index::{Column, Direction, Line, Point};
-use mightty_terminal::selection::Selection;
-use mightty_terminal::term::cell::Flags;
-use mightty_terminal::term::{
+use crate::terminal::event::{EventListener, OnResize, WindowSize};
+use crate::terminal::grid::Dimensions as TermDimensions;
+use crate::terminal::index::{Column, Direction, Line, Point};
+use crate::terminal::selection::Selection;
+use crate::terminal::term::cell::Flags;
+use crate::terminal::term::{
     self, LineDamageBounds, MIN_COLUMNS, MIN_SCREEN_LINES, Term, TermDamage, TermMode,
 };
-use mightty_terminal::vte::ansi::{CursorShape, NamedColor};
+use crate::terminal::vte::ansi::{CursorShape, NamedColor};
 
 use crate::config::UiConfig;
 use crate::config::debug::RendererPreference;

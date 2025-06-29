@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use unicode_width::UnicodeWidthChar;
 
-use mightty_terminal::grid::Dimensions;
+use crate::terminal::grid::Dimensions;
 
 use crate::display::SizeInfo;
 

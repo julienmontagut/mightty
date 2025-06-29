@@ -7,11 +7,11 @@ use std::rc::Rc;
 use ahash::RandomState;
 use winit::keyboard::ModifiersState;
 
-use mightty_terminal::grid::{BidirectionalIterator, Dimensions};
-use mightty_terminal::index::{Boundary, Column, Direction, Line, Point};
-use mightty_terminal::term::cell::Hyperlink;
-use mightty_terminal::term::search::{Match, RegexIter, RegexSearch};
-use mightty_terminal::term::{Term, TermMode};
+use crate::terminal::grid::{BidirectionalIterator, Dimensions};
+use crate::terminal::index::{Boundary, Column, Direction, Line, Point};
+use crate::terminal::term::cell::Hyperlink;
+use crate::terminal::term::search::{Match, RegexIter, RegexSearch};
+use crate::terminal::term::{Term, TermMode};
 
 use crate::config::UiConfig;
 use crate::config::ui_config::{Hint, HintAction};
@@ -625,9 +625,9 @@ impl<T> Iterator for HintPostProcessor<'_, T> {
 
 #[cfg(test)]
 mod tests {
-    use mightty_terminal::index::{Column, Line};
-    use mightty_terminal::term::test::mock_term;
-    use mightty_terminal::vte::ansi::Handler;
+    use crate::terminal::index::{Column, Line};
+    use crate::terminal::term::test::mock_term;
+    use crate::terminal::vte::ansi::Handler;
 
     use super::*;
 

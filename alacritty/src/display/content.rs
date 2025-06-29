@@ -3,14 +3,14 @@ use std::num::NonZeroU32;
 use std::ops::Deref;
 use std::{cmp, mem};
 
-use mightty_terminal::event::EventListener;
-use mightty_terminal::grid::{Dimensions, Indexed};
-use mightty_terminal::index::{Column, Line, Point};
-use mightty_terminal::selection::SelectionRange;
-use mightty_terminal::term::cell::{Cell, Flags, Hyperlink};
-use mightty_terminal::term::search::{Match, RegexSearch};
-use mightty_terminal::term::{self, RenderableContent as TerminalContent, Term, TermMode};
-use mightty_terminal::vte::ansi::{Color, CursorShape, NamedColor};
+use crate::terminal::event::EventListener;
+use crate::terminal::grid::{Dimensions, Indexed};
+use crate::terminal::index::{Column, Line, Point};
+use crate::terminal::selection::SelectionRange;
+use crate::terminal::term::cell::{Cell, Flags, Hyperlink};
+use crate::terminal::term::search::{Match, RegexSearch};
+use crate::terminal::term::{self, RenderableContent as TerminalContent, Term, TermMode};
+use crate::terminal::vte::ansi::{Color, CursorShape, NamedColor};
 
 use crate::config::UiConfig;
 use crate::display::color::{CellRgb, DIM_FACTOR, List, Rgb};

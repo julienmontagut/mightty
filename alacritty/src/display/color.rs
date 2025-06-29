@@ -6,8 +6,8 @@ use log::trace;
 use serde::de::{Error as SerdeError, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use mightty_terminal::term::color::COUNT;
-use mightty_terminal::vte::ansi::{NamedColor, Rgb as VteRgb};
+use crate::terminal::term::color::COUNT;
+use crate::terminal::vte::ansi::{NamedColor, Rgb as VteRgb};
 
 use crate::config::color::Colors;
 

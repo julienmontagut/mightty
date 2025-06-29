@@ -24,8 +24,8 @@ use rustix_openpty::rustix::termios::{self, InputModes, OptionalActions};
 use signal_hook::low_level::{pipe as signal_pipe, unregister as unregister_signal};
 use signal_hook::{SigId, consts as sigconsts};
 
-use crate::event::{OnResize, WindowSize};
-use crate::tty::{ChildEvent, EventedPty, EventedReadWrite, Options};
+use crate::terminal::event::{OnResize, WindowSize};
+use crate::terminal::tty::{ChildEvent, EventedPty, EventedReadWrite, Options};
 
 // Interest in PTY read/writes.
 pub(crate) const PTY_READ_WRITE_TOKEN: usize = 0;
