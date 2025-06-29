@@ -28,10 +28,6 @@ pub struct Options {
     #[clap(long, conflicts_with("daemon"))]
     pub ref_test: bool,
 
-    /// X11 window ID to embed Alacritty within (decimal or hexadecimal with "0x" prefix).
-    #[clap(long)]
-    pub embed: Option<String>,
-
     /// Specify alternative configuration file [default:
     /// $XDG_CONFIG_HOME/alacritty/alacritty.toml].
     #[cfg(not(target_os = "macos"))]
@@ -88,10 +84,6 @@ impl Options {
             config.general.ipc_socket = true;
         }
 
-        config.window.embed = self
-            .embed
-            .as_ref()
-            .and_then(|embed| parse_hex_or_decimal(embed));
         config.debug.print_events |= self.print_events;
         config.debug.log_level = max(config.debug.log_level, self.log_level());
         config.debug.ref_test |= self.ref_test;
@@ -209,7 +201,7 @@ pub struct WindowIdentity {
     #[clap(short = 'T', short_alias('t'), long)]
     pub title: Option<String>,
 
-    /// Defines window class/app_id on X11/Wayland [default: Alacritty].
+    /// Defines window class/app_id on Wayland [default: Alacritty].
     #[clap(long, value_name = "general> | <general>,<instance", value_parser = parse_class)]
     pub class: Option<Class>,
 }

@@ -52,8 +52,6 @@ regex = "1.0"
 [dev-dependencies]
 clap_complete = "4.2.3"
 
-[target.'cfg(not(target_os = "macos"))'.dependencies]
-png = { version = "0.17.5", default-features = false, optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.1"
@@ -71,8 +69,7 @@ objc2-app-kit = { version = "0.3.1", default-features = false, features = [
 ] }
 
 [features]
-default = ["wayland", "x11"]
-x11 = ["copypasta/x11", "winit/x11", "glutin/x11", "glutin/glx", "png"]
+default = ["wayland"]
 wayland = [
     "copypasta/wayland",
     "glutin/wayland",
@@ -80,7 +77,6 @@ wayland = [
     "winit/wayland-dlopen",
     "winit/wayland-csd-adwaita-crossfont",
 ]
-nightly = []
 
 [profile.release]
 lto = "thin"

@@ -8,8 +8,8 @@
 // This is silently ignored on non-windows systems.
 // See https://msdn.microsoft.com/en-us/library/4cc7ya5b.aspx for more details.
 
-#[cfg(not(any(feature = "x11", feature = "wayland", target_os = "macos")))]
-compile_error!(r#"at least one of the "x11"/"wayland" features must be enabled"#);
+#[cfg(not(any(feature = "wayland", target_os = "macos")))]
+compile_error!(r#"the "wayland" feature must be enabled"#);
 
 use std::error::Error;
 use std::fmt::Write as _;
@@ -19,8 +19,6 @@ use std::{env, fs};
 
 use log::info;
 use winit::event_loop::EventLoop;
-#[cfg(all(feature = "x11", not(target_os = "macos")))]
-use winit::raw_window_handle::{HasDisplayHandle, RawDisplayHandle};
 
 mod cli;
 mod clipboard;
@@ -125,19 +123,7 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
     info!("Welcome to Alacritty");
     info!("Version {}", env!("VERSION"));
 
-    #[cfg(all(feature = "x11", not(target_os = "macos")))]
-    info!(
-        "Running on {}",
-        if matches!(
-            window_event_loop.display_handle().unwrap().as_raw(),
-            RawDisplayHandle::Wayland(_)
-        ) {
-            "Wayland"
-        } else {
-            "X11"
-        }
-    );
-    #[cfg(not(any(feature = "x11", target_os = "macos")))]
+    #[cfg(not(target_os = "macos"))]
     info!("Running on Wayland");
 
     // Load configuration file.

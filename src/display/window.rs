@@ -5,18 +5,8 @@ use winit::platform::startup_notify::{
 #[cfg(not(target_os = "macos"))]
 use winit::window::ActivationToken;
 
-#[cfg(all(not(feature = "x11"), not(target_os = "macos")))]
+#[cfg(not(target_os = "macos"))]
 use winit::platform::wayland::WindowAttributesExtWayland;
-
-#[rustfmt::skip]
-#[cfg(all(feature = "x11", not(target_os = "macos")))]
-use {
-    std::io::Cursor,
-    winit::platform::x11::{WindowAttributesExtX11, ActiveEventLoopExtX11},
-    glutin::platform::x11::X11VisualInfo,
-    winit::window::Icon,
-    png::Decoder,
-};
 
 use std::fmt::{self, Display, Formatter};
 
@@ -42,10 +32,6 @@ use crate::cli::WindowOptions;
 use crate::config::UiConfig;
 use crate::config::window::{Decorations, Identity, WindowConfig};
 use crate::display::SizeInfo;
-
-/// Window icon for `_NET_WM_ICON` property.
-#[cfg(all(feature = "x11", not(target_os = "macos")))]
-const WINDOW_ICON: &[u8] = include_bytes!("../../extra/logo/compat/alacritty-term.png");
 
 /// Window errors.
 #[derive(Debug)]
@@ -111,7 +97,6 @@ pub struct Window {
     /// Current window title.
     title: String,
 
-    is_x11: bool,
     current_mouse_cursor: CursorIcon,
     mouse_visible: bool,
 }
@@ -125,16 +110,11 @@ impl Window {
         config: &UiConfig,
         identity: &Identity,
         options: &mut WindowOptions,
-        #[rustfmt::skip]
-        #[cfg(all(feature = "x11", not(target_os = "macos")))]
-        x11_visual: Option<X11VisualInfo>,
     ) -> Result<Window> {
         let identity = identity.clone();
         let mut window_attributes = Window::get_platform_window(
             &identity,
             &config.window,
-            #[cfg(all(feature = "x11", not(target_os = "macos")))]
-            x11_visual,
             #[cfg(target_os = "macos")]
             &options.window_tabbing_id.take(),
         );
@@ -156,13 +136,6 @@ impl Window {
 
             // Remove the token from the env.
             startup_notify::reset_activation_token_env();
-        }
-
-        // On X11, embed the window inside another if the parent ID has been set.
-        #[cfg(all(feature = "x11", not(target_os = "macos")))]
-        if let Some(parent_window_id) = event_loop.is_x11().then_some(config.window.embed).flatten()
-        {
-            window_attributes = window_attributes.with_embed_parent_window(parent_window_id);
         }
 
         window_attributes = window_attributes
@@ -193,10 +166,6 @@ impl Window {
 
         let scale_factor = window.scale_factor();
         log::info!("Window scale factor: {}", scale_factor);
-        let is_x11 = matches!(
-            window.window_handle().unwrap().as_raw(),
-            RawWindowHandle::Xlib(_)
-        );
 
         Ok(Self {
             hold: options.terminal_options.hold,
@@ -207,7 +176,6 @@ impl Window {
             has_frame: true,
             scale_factor,
             window,
-            is_x11,
         })
     }
 
@@ -278,31 +246,10 @@ impl Window {
     pub fn get_platform_window(
         identity: &Identity,
         window_config: &WindowConfig,
-        #[cfg(all(feature = "x11", not(target_os = "macos")))] x11_visual: Option<X11VisualInfo>,
     ) -> WindowAttributes {
-        #[cfg(feature = "x11")]
-        let icon = {
-            let mut decoder = Decoder::new(Cursor::new(WINDOW_ICON));
-            decoder.set_transformations(png::Transformations::normalize_to_color8());
-            let mut reader = decoder.read_info().expect("invalid embedded icon");
-            let mut buf = vec![0; reader.output_buffer_size()];
-            let _ = reader.next_frame(&mut buf);
-            Icon::from_rgba(buf, reader.info().width, reader.info().height)
-                .expect("invalid embedded icon format")
-        };
-
         let builder = WinitWindow::default_attributes()
             .with_name(&identity.class.general, &identity.class.instance)
             .with_decorations(window_config.decorations != Decorations::None);
-
-        #[cfg(feature = "x11")]
-        let builder = builder.with_window_icon(Some(icon));
-
-        #[cfg(feature = "x11")]
-        let builder = match x11_visual {
-            Some(visual) => builder.with_x11_visual(visual.visual_id() as u32),
-            None => builder,
-        };
 
         builder
     }
@@ -419,17 +366,12 @@ impl Window {
     }
 
     pub fn set_ime_allowed(&self, allowed: bool) {
-        // Skip runtime IME manipulation on X11 since it breaks some IMEs.
-        if !self.is_x11 {
-            self.window.set_ime_allowed(allowed);
-        }
+        self.window.set_ime_allowed(allowed);
     }
 
     /// Adjust the IME editor position according to the new location of the cursor.
     pub fn update_ime_position(&self, point: Point<usize>, size: &SizeInfo) {
-        // NOTE: X11 doesn't support cursor area, so we need to offset manually to not obscure
-        // the text.
-        let offset = if self.is_x11 { 1 } else { 0 };
+        let offset = 0;
         let nspot_x = f64::from(size.padding_x() + point.column.0 as f32 * size.cell_width());
         let nspot_y =
             f64::from(size.padding_y() + (point.line + offset) as f32 * size.cell_height());

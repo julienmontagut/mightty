@@ -10,8 +10,6 @@ use std::sync::Arc;
 
 use glutin::config::Config as GlutinConfig;
 use glutin::display::GetGlDisplay;
-#[cfg(all(feature = "x11", not(target_os = "macos")))]
-use glutin::platform::x11::X11GlConfigExt;
 use log::info;
 use serde_json as json;
 use winit::event::{Event as WinitEvent, Modifiers, WindowEvent};
@@ -87,14 +85,7 @@ impl WindowContext {
         )?;
         let gl_config = renderer::platform::pick_gl_config(&gl_display, raw_window_handle)?;
 
-        let window = Window::new(
-            event_loop,
-            &config,
-            &identity,
-            &mut options,
-            #[cfg(all(feature = "x11", not(target_os = "macos")))]
-            gl_config.x11_visual(),
-        )?;
+        let window = Window::new(event_loop, &config, &identity, &mut options)?;
 
         // Create context.
         let gl_context =
@@ -121,14 +112,7 @@ impl WindowContext {
             .window_identity
             .override_identity_config(&mut identity);
 
-        let window = Window::new(
-            event_loop,
-            &config,
-            &identity,
-            &mut options,
-            #[cfg(all(feature = "x11", not(target_os = "macos")))]
-            gl_config.x11_visual(),
-        )?;
+        let window = Window::new(event_loop, &config, &identity, &mut options)?;
 
         // Create context.
         let raw_window_handle = window.raw_window_handle();

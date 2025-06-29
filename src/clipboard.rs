@@ -3,14 +3,12 @@ use winit::raw_window_handle::RawDisplayHandle;
 
 use crate::terminal::term::ClipboardType;
 
-#[cfg(any(feature = "x11", target_os = "macos"))]
+#[cfg(target_os = "macos")]
 use copypasta::ClipboardContext;
 use copypasta::ClipboardProvider;
 use copypasta::nop_clipboard::NopClipboardContext;
 #[cfg(all(feature = "wayland", not(target_os = "macos")))]
 use copypasta::wayland_clipboard;
-#[cfg(all(feature = "x11", not(target_os = "macos")))]
-use copypasta::x11_clipboard::{Primary as X11SelectionClipboard, X11ClipboardContext};
 
 pub struct Clipboard {
     clipboard: Box<dyn ClipboardProvider>,
@@ -33,8 +31,7 @@ impl Clipboard {
         }
     }
 
-    /// Used for tests, to handle missing clipboard provider when built without the `x11`
-    /// feature, and as default clipboard value.
+    /// Used for tests and as default clipboard value.
     pub fn new_nop() -> Self {
         Self {
             clipboard: Box::new(NopClipboardContext::new().unwrap()),
@@ -51,15 +48,7 @@ impl Default for Clipboard {
             selection: None,
         };
 
-        #[cfg(all(feature = "x11", not(target_os = "macos")))]
-        return Self {
-            clipboard: Box::new(ClipboardContext::new().unwrap()),
-            selection: Some(Box::new(
-                X11ClipboardContext::<X11SelectionClipboard>::new().unwrap(),
-            )),
-        };
-
-        #[cfg(not(any(feature = "x11", target_os = "macos")))]
+        #[cfg(not(target_os = "macos"))]
         return Self::new_nop();
     }
 }

@@ -1084,7 +1084,7 @@ impl Display {
             self.raw_window_handle,
             RawWindowHandle::Xcb(_) | RawWindowHandle::Xlib(_)
         ) {
-            // On X11 `swap_buffers` does not block for vsync. However the next OpenGl command
+            // `swap_buffers` does not block for vsync. However the next OpenGl command
             // will block to synchronize (this is `glClear` in Alacritty), which causes a
             // permanent one frame delay.
             self.renderer.finish();
