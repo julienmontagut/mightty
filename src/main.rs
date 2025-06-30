@@ -1,4 +1,4 @@
-//! Alacritty - The GPU Enhanced Terminal.
+//! Mightty - The GPU Enhanced Terminal.
 
 #![warn(rust_2018_idioms, future_incompatible)]
 #![deny(clippy::all, clippy::if_not_else, clippy::enum_glob_use)]
@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match options.subcommands {
         Some(Subcommands::Msg(options)) => msg(options)?,
         Some(Subcommands::Migrate(options)) => migrate::migrate(options),
-        None => alacritty(options)?,
+        None => mightty(options)?,
     }
 
     Ok(())
@@ -80,7 +80,7 @@ fn msg(mut options: MessageOptions) -> Result<(), Box<dyn Error>> {
     ipc::send_message(options.socket, options.message).map_err(|err| err.into())
 }
 
-/// Temporary files stored for Alacritty.
+/// Temporary files stored for Mightty.
 ///
 /// This stores temporary files to automate their destruction through its `Drop` implementation.
 struct TemporaryFiles {
@@ -108,11 +108,11 @@ impl Drop for TemporaryFiles {
     }
 }
 
-/// Run main Alacritty entrypoint.
+/// Run main Mightty entrypoint.
 ///
 /// Creates a window, the terminal state, PTY, I/O event loop, input processor,
 /// config change monitor, and runs the main display loop.
-fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
+fn mightty(mut options: Options) -> Result<(), Box<dyn Error>> {
     // Setup winit event loop.
     let window_event_loop = EventLoop::<Event>::with_user_event().build()?;
 
@@ -120,7 +120,7 @@ fn alacritty(mut options: Options) -> Result<(), Box<dyn Error>> {
     let log_file = logging::initialize(&options, window_event_loop.create_proxy())
         .expect("Unable to initialize logger");
 
-    info!("Welcome to Alacritty");
+    info!("Welcome to Mightty");
     info!("Version {}", env!("VERSION"));
 
     #[cfg(not(target_os = "macos"))]

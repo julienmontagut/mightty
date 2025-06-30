@@ -16,7 +16,7 @@ use crate::config::ui_config::{Program, SerdeReplace};
 use crate::config::window::{Class, Identity};
 use crate::logging::LOG_TARGET_IPC_CONFIG;
 
-/// CLI options for the main Alacritty executable.
+/// CLI options for the main Mightty executable.
 #[derive(Parser, Default, Debug)]
 #[clap(author, about, version = env!("VERSION"))]
 pub struct Options {
@@ -29,12 +29,12 @@ pub struct Options {
     pub ref_test: bool,
 
     /// Specify alternative configuration file [default:
-    /// $XDG_CONFIG_HOME/alacritty/alacritty.toml].
+    /// $XDG_CONFIG_HOME/mightty/mightty.toml].
     #[cfg(not(target_os = "macos"))]
     #[clap(long, value_hint = ValueHint::FilePath)]
     pub config_file: Option<PathBuf>,
 
-    /// Specify alternative configuration file [default: $HOME/.config/alacritty/alacritty.toml].
+    /// Specify alternative configuration file [default: $HOME/.config/mightty/mightty.toml].
     #[cfg(target_os = "macos")]
     #[clap(long, value_hint = ValueHint::FilePath)]
     pub config_file: Option<PathBuf>,
@@ -197,11 +197,11 @@ impl From<TerminalOptions> for PtyOptions {
 /// Window specific cli options which can be passed to new windows via IPC.
 #[derive(Serialize, Deserialize, Args, Default, Debug, Clone, PartialEq, Eq)]
 pub struct WindowIdentity {
-    /// Defines the window title [default: Alacritty].
+    /// Defines the window title [default: Mightty].
     #[clap(short = 'T', short_alias('t'), long)]
     pub title: Option<String>,
 
-    /// Defines window class/app_id on Wayland [default: Alacritty].
+    /// Defines window class/app_id on Wayland [default: Mightty].
     #[clap(long, value_name = "general> | <general>,<instance", value_parser = parse_class)]
     pub class: Option<Class>,
 }
@@ -225,7 +225,7 @@ pub enum Subcommands {
     Migrate(MigrateOptions),
 }
 
-/// Send a message to the Alacritty socket.
+/// Send a message to the Mightty socket.
 #[derive(Args, Debug)]
 pub struct MessageOptions {
     /// IPC socket connection path override.
@@ -240,13 +240,13 @@ pub struct MessageOptions {
 /// Available socket messages.
 #[derive(Subcommand, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum SocketMessage {
-    /// Create a new window in the same Alacritty process.
+    /// Create a new window in the same Mightty process.
     CreateWindow(WindowOptions),
 
-    /// Update the Alacritty configuration.
+    /// Update the Mightty configuration.
     Config(IpcConfig),
 
-    /// Read runtime Alacritty configuration.
+    /// Read runtime Mightty configuration.
     GetConfig(IpcGetConfig),
 }
 
@@ -317,7 +317,7 @@ pub struct IpcConfig {
     /// Window ID for the new config.
     ///
     /// Use `-1` to apply this change to all windows.
-    #[clap(short, long, allow_hyphen_values = true, env = "ALACRITTY_WINDOW_ID")]
+    #[clap(short, long, allow_hyphen_values = true, env = "MIGHTTY_WINDOW_ID")]
     pub window_id: Option<i128>,
 
     /// Clear all runtime configuration changes.
@@ -331,7 +331,7 @@ pub struct IpcGetConfig {
     /// Window ID for the config request.
     ///
     /// Use `-1` to get the global config.
-    #[clap(short, long, allow_hyphen_values = true, env = "ALACRITTY_WINDOW_ID")]
+    #[clap(short, long, allow_hyphen_values = true, env = "MIGHTTY_WINDOW_ID")]
     pub window_id: Option<i128>,
 }
 
@@ -523,12 +523,12 @@ mod tests {
         let mut clap = Options::command();
 
         for (shell, file) in &[
-            (Shell::Bash, "alacritty.bash"),
-            (Shell::Fish, "alacritty.fish"),
-            (Shell::Zsh, "_alacritty"),
+            (Shell::Bash, "mightty.bash"),
+            (Shell::Fish, "mightty.fish"),
+            (Shell::Zsh, "_mightty"),
         ] {
             let mut generated = Vec::new();
-            clap_complete::generate(*shell, &mut clap, "alacritty", &mut generated);
+            clap_complete::generate(*shell, &mut clap, "mightty", &mut generated);
             let generated = String::from_utf8_lossy(&generated);
 
             let mut completion = String::new();
@@ -541,11 +541,11 @@ mod tests {
 
         // NOTE: Use this to generate new completions.
         //
-        // let mut file = File::create("../extra/completions/alacritty.bash").unwrap();
-        // clap_complete::generate(Shell::Bash, &mut clap, "alacritty", &mut file);
-        // let mut file = File::create("../extra/completions/alacritty.fish").unwrap();
-        // clap_complete::generate(Shell::Fish, &mut clap, "alacritty", &mut file);
-        // let mut file = File::create("../extra/completions/_alacritty").unwrap();
-        // clap_complete::generate(Shell::Zsh, &mut clap, "alacritty", &mut file);
+        // let mut file = File::create("../extra/completions/mightty.bash").unwrap();
+        // clap_complete::generate(Shell::Bash, &mut clap, "mightty", &mut file);
+        // let mut file = File::create("../extra/completions/mightty.fish").unwrap();
+        // clap_complete::generate(Shell::Fish, &mut clap, "mightty", &mut file);
+        // let mut file = File::create("../extra/completions/_mightty").unwrap();
+        // clap_complete::generate(Shell::Zsh, &mut clap, "mightty", &mut file);
     }
 }

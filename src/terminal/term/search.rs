@@ -746,9 +746,9 @@ mod tests {
         #[rustfmt::skip]
         let term = mock_term("\
             testing66\r\n\
-            Alacritty\n\
+            Mightty\n\
             123\r\n\
-            Alacritty\r\n\
+            Mightty\r\n\
             123\
         ");
 
@@ -769,9 +769,9 @@ mod tests {
         #[rustfmt::skip]
         let term = mock_term("\
             testing66\r\n\
-            Alacritty\n\
+            Mightty\n\
             123\r\n\
-            Alacritty\r\n\
+            Mightty\r\n\
             123\
         ");
 
@@ -791,8 +791,8 @@ mod tests {
     fn nested_regex() {
         #[rustfmt::skip]
         let term = mock_term("\
-            Ala -> Alacritty -> critty\r\n\
-            critty\
+            Might -> Mightty -> tty\r\n\
+            tty\
         ");
 
         // Greedy stopped at linebreak.
@@ -885,7 +885,7 @@ mod tests {
 
     #[test]
     fn skip_dead_cell() {
-        let term = mock_term("alacritty");
+        let term = mock_term("mightty");
 
         // Make sure dead state cell is skipped when reversing.
         let mut regex = RegexSearch::new("alacrit").unwrap();

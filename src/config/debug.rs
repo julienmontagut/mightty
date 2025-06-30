@@ -14,10 +14,10 @@ pub struct Debug {
     /// Should show render timer.
     pub render_timer: bool,
 
-    /// Highlight damage information produced by alacritty.
+    /// Highlight damage information produced by mightty.
     pub highlight_damage: bool,
 
-    /// The renderer alacritty should be using.
+    /// The renderer mightty should be using.
     pub renderer: Option<RendererPreference>,
 
     /// Use EGL as display API if the current platform allows it.

@@ -492,7 +492,7 @@ impl SequenceBuilder {
         };
 
         let (base, terminator) = match named {
-            // F3 in kitty protocol diverges from alacritty's terminfo.
+            // F3 in kitty protocol diverges from mightty's terminfo.
             NamedKey::F3 => ("13", SequenceTerminator::Normal('~')),
             NamedKey::F13 => ("57376", SequenceTerminator::Kitty),
             NamedKey::F14 => ("57377", SequenceTerminator::Kitty),

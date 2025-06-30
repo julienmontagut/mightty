@@ -224,7 +224,7 @@ pub fn damage_y_to_viewport_y(size_info: &SizeInfo, rect: &Rect) -> i32 {
     size_info.height() as i32 - rect.y - rect.height
 }
 
-/// Iterator which converts `alacritty_terminal` damage information into renderer damaged rects.
+/// Iterator which converts `terminal` damage information into renderer damaged rects.
 struct RenderDamageIterator<'a> {
     damaged_lines: Peekable<TermDamageIterator<'a>>,
     size_info: &'a SizeInfo<u32>,

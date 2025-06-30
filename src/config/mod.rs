@@ -219,9 +219,7 @@ pub fn deserialize_config(path: &Path, warn_pruned: bool) -> Result<Value> {
     // Convert YAML to TOML as a transitionary fallback mechanism.
     let extension = path.extension().unwrap_or_default();
     if (extension == "yaml" || extension == "yml") && !contents.trim().is_empty() {
-        warn!(
-            "YAML config {path:?} is deprecated, please migrate to TOML using `alacritty migrate`"
-        );
+        warn!("YAML config {path:?} is deprecated, please migrate to TOML using `mightty migrate`");
 
         let mut value: serde_yaml::Value = serde_yaml::from_str(&contents)?;
         prune_yaml_nulls(&mut value, warn_pruned);
@@ -367,27 +365,27 @@ fn prune_yaml_nulls(value: &mut serde_yaml::Value, warn_pruned: bool) {
 /// Get the location of the first found default config file paths
 /// according to the following order:
 ///
-/// 1. $XDG_CONFIG_HOME/alacritty/alacritty.toml
-/// 2. $XDG_CONFIG_HOME/alacritty.toml
-/// 3. $HOME/.config/alacritty/alacritty.toml
-/// 4. $HOME/.alacritty.toml
+/// 1. $XDG_CONFIG_HOME/mightty/mightty.toml
+/// 2. $XDG_CONFIG_HOME/mightty.toml
+/// 3. $HOME/.config/mightty/mightty.toml
+/// 4. $HOME/.mightty.toml
 pub fn installed_config(suffix: &str) -> Option<PathBuf> {
-    let file_name = format!("alacritty.{suffix}");
+    let file_name = format!("mightty.{suffix}");
 
     // Try using XDG location by default.
-    xdg::BaseDirectories::with_prefix("alacritty")
+    xdg::BaseDirectories::with_prefix("mightty")
         .find_config_file(&file_name)
         .or_else(|| xdg::BaseDirectories::new().find_config_file(&file_name))
         .or_else(|| {
             if let Ok(home) = env::var("HOME") {
-                // Fallback path: $HOME/.config/alacritty/alacritty.toml.
+                // Fallback path: $HOME/.config/mightty/mightty.toml.
                 let fallback = PathBuf::from(&home)
-                    .join(".config/alacritty")
+                    .join(".config/mightty")
                     .join(&file_name);
                 if fallback.exists() {
                     return Some(fallback);
                 }
-                // Fallback path: $HOME/.alacritty.toml.
+                // Fallback path: $HOME/.mightty.toml.
                 let hidden_name = format!(".{file_name}");
                 let fallback = PathBuf::from(&home).join(hidden_name);
                 if fallback.exists() {

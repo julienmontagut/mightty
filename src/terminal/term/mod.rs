@@ -2434,7 +2434,7 @@ impl From<bool> for ModeState {
 
 /// Terminal version for escape sequence reports.
 ///
-/// This returns the current terminal version as a unique number based on alacritty_terminal's
+/// This returns the current terminal version as a unique number based on terminal's
 /// semver version. The different versions are padded to ensure that a higher semver version will
 /// always report a higher version number.
 fn version_number(mut version: &str) -> usize {

@@ -97,7 +97,7 @@ pub struct UiConfig {
     #[serde(default)]
     pub hints: Hints,
 
-    /// Config for the alacritty_terminal itself.
+    /// Config for the terminal itself.
     #[serde(default)]
     pub terminal: Terminal,
 

@@ -44,13 +44,13 @@ mightty-universal:
     MACOSX_DEPLOYMENT_TARGET="10.11" cargo build --release --target=aarch64-apple-darwin
     @lipo target/{x86_64,aarch64}-apple-darwin/release/{{TARGET}} -create -output {{APP_BINARY}}
 
-# Create an Alacritty.app
+# Create an Mightty.app
 app: app-native
 
-# Create a universal Alacritty.app
+# Create a universal Mightty.app
 app-universal: (app-build "universal")
 
-# Create native Alacritty.app
+# Create native Mightty.app
 app-native: (app-build "native")
 
 app-build variant: (mightty-variant variant)
@@ -80,13 +80,13 @@ mightty-variant variant:
         just mightty-universal
     fi
 
-# Create an Alacritty.dmg
+# Create an Mightty.dmg
 dmg: dmg-native
 
-# Create a universal Alacritty.dmg
+# Create a universal Mightty.dmg
 dmg-universal: (dmg-build "universal")
 
-# Create native Alacritty.dmg
+# Create native Mightty.dmg
 dmg-native: (dmg-build "native")
 
 dmg-build variant: (app-build variant)

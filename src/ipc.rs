@@ -1,4 +1,4 @@
-//! Alacritty socket IPC.
+//! Mightty socket IPC.
 
 use serde::{Deserialize, Serialize};
 use std::ffi::OsStr;
@@ -20,7 +20,7 @@ use crate::cli::{Options, SocketMessage};
 use crate::event::{Event, EventType};
 
 /// Environment variable name for the IPC socket path.
-const ALACRITTY_SOCKET_ENV: &str = "ALACRITTY_SOCKET";
+const MIGHTTY_SOCKET_ENV: &str = "MIGHTTY_SOCKET";
 
 /// Create an IPC socket.
 pub fn spawn_ipc_socket(
@@ -38,11 +38,11 @@ pub fn spawn_ipc_socket(
     let listener = UnixListener::bind(&socket_path)?;
 
     unsafe {
-        env::set_var(ALACRITTY_SOCKET_ENV, socket_path.as_os_str());
+        env::set_var(MIGHTTY_SOCKET_ENV, socket_path.as_os_str());
     }
     if options.daemon {
         println!(
-            "ALACRITTY_SOCKET={}; export ALACRITTY_SOCKET",
+            "MIGHTTY_SOCKET={}; export MIGHTTY_SOCKET",
             socket_path.display()
         );
     }
@@ -97,7 +97,7 @@ pub fn spawn_ipc_socket(
     Ok(socket_path)
 }
 
-/// Send a message to the active Alacritty socket.
+/// Send a message to the active Mightty socket.
 pub fn send_message(socket: Option<PathBuf>, message: SocketMessage) -> IoResult<()> {
     let mut socket = find_socket(socket)?;
 
@@ -184,7 +184,7 @@ fn find_socket(socket_path: Option<PathBuf>) -> IoResult<UnixStream> {
     }
 
     // Handle environment variable.
-    if let Ok(path) = env::var(ALACRITTY_SOCKET_ENV) {
+    if let Ok(path) = env::var(MIGHTTY_SOCKET_ENV) {
         let socket_path = PathBuf::from(path);
         if let Ok(socket) = UnixStream::connect(socket_path) {
             return Ok(socket);
@@ -195,7 +195,7 @@ fn find_socket(socket_path: Option<PathBuf>) -> IoResult<UnixStream> {
     for entry in fs::read_dir(socket_dir())?.filter_map(|entry| entry.ok()) {
         let path = entry.path();
 
-        // Skip files that aren't Alacritty sockets.
+        // Skip files that aren't Mightty sockets.
         let socket_prefix = socket_prefix();
         if path
             .file_name()
@@ -236,7 +236,7 @@ fn socket_prefix() -> String {
 /// File prefix matching all available sockets.
 #[cfg(target_os = "macos")]
 fn socket_prefix() -> String {
-    String::from("Alacritty")
+    String::from("Mightty")
 }
 
 /// IPC socket replies.

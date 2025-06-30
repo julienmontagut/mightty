@@ -169,22 +169,22 @@ pub enum Action {
     /// Clear the display buffer(s) to remove history.
     ClearHistory,
 
-    /// Hide the Alacritty window.
+    /// Hide the Mightty window.
     Hide,
 
-    /// Hide all windows other than Alacritty on macOS.
+    /// Hide all windows other than Mightty on macOS.
     HideOtherApplications,
 
-    /// Minimize the Alacritty window.
+    /// Minimize the Mightty window.
     Minimize,
 
-    /// Quit Alacritty.
+    /// Quit Mightty.
     Quit,
 
     /// Clear warning and error notices.
     ClearLogNotice,
 
-    /// Spawn a new instance of Alacritty.
+    /// Spawn a new instance of Mightty.
     SpawnNewInstance,
 
     /// Select next tab.
@@ -223,7 +223,7 @@ pub enum Action {
     /// Select the last tab.
     SelectLastTab,
 
-    /// Create a new Alacritty window.
+    /// Create a new Mightty window.
     CreateNewWindow,
 
     /// Create new window in a tab.
