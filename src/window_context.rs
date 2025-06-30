@@ -26,8 +26,9 @@ use crate::terminal::term::test::TermSize;
 use crate::terminal::term::{Term, TermMode};
 use crate::terminal::tty;
 
-use crate::cli::{ParsedOptions, WindowOptions};
+use crate::cli::WindowOptions;
 use crate::clipboard::Clipboard;
+use crate::config::IpcProvider;
 use crate::config::UiConfig;
 use crate::display::Display;
 use crate::display::window::Window;
@@ -57,7 +58,7 @@ pub struct WindowContext {
     preserve_title: bool,
     master_fd: RawFd,
     shell_pid: u32,
-    window_config: ParsedOptions,
+    window_config: IpcProvider,
     config: Rc<UiConfig>,
 }
 
@@ -87,7 +88,6 @@ impl WindowContext {
 
         let window = Window::new(event_loop, &config, &identity, &mut options)?;
 
-        // Create context.
         let gl_context =
             renderer::platform::create_gl_context(&gl_display, &gl_config, raw_window_handle)?;
 
@@ -103,7 +103,7 @@ impl WindowContext {
         proxy: EventLoopProxy<Event>,
         config: Rc<UiConfig>,
         mut options: WindowOptions,
-        config_overrides: ParsedOptions,
+        config_overrides: IpcProvider,
     ) -> Result<Self, Box<dyn Error>> {
         let gl_display = gl_config.display();
 
@@ -114,7 +114,6 @@ impl WindowContext {
 
         let window = Window::new(event_loop, &config, &identity, &mut options)?;
 
-        // Create context.
         let raw_window_handle = window.raw_window_handle();
         let gl_context =
             renderer::platform::create_gl_context(&gl_display, gl_config, Some(raw_window_handle))?;
@@ -159,7 +158,6 @@ impl WindowContext {
 
         let event_proxy = EventProxy::new(proxy, display.window.id());
 
-        // Create the terminal.
         //
         // This object contains all of the state about what's being displayed. It's
         // wrapped in a clonable mutex since both the I/O loop and display need to
@@ -171,7 +169,6 @@ impl WindowContext {
         );
         let terminal = Arc::new(FairMutex::new(terminal));
 
-        // Create the PTY.
         //
         // The PTY forks a process to run the shell on the slave side of the
         // pseudoterminal. A file descriptor for the master side is retained for
@@ -185,7 +182,6 @@ impl WindowContext {
         let master_fd = pty.file().as_raw_fd();
         let shell_pid = pty.child().id();
 
-        // Create the pseudoterminal I/O loop.
         //
         // PTY I/O is ran on another thread as to not occupy cycles used by the
         // renderer and input processing. Note that access to the terminal state is
@@ -211,7 +207,6 @@ impl WindowContext {
             event_proxy.send_event(TerminalEvent::CursorBlinkingChange.into());
         }
 
-        // Create context for the Mightty window.
         Ok(WindowContext {
             preserve_title,
             terminal,
@@ -223,7 +218,7 @@ impl WindowContext {
             cursor_blink_timed_out: Default::default(),
             inline_search_state: Default::default(),
             message_buffer: Default::default(),
-            window_config: Default::default(),
+            window_config: IpcProvider::from_options(&[]),
             search_state: Default::default(),
             event_queue: Default::default(),
             modifiers: Default::default(),
@@ -238,8 +233,10 @@ impl WindowContext {
     pub fn update_config(&mut self, new_config: Rc<UiConfig>) {
         let old_config = mem::replace(&mut self.config, new_config);
 
-        // Apply ipc config if there are overrides.
-        self.config = self.window_config.override_config_rc(self.config.clone());
+        self.config = self
+            .window_config
+            .apply_to_config(self.config.clone())
+            .unwrap_or_else(|_| self.config.clone());
 
         self.display.update_config(&self.config);
         self.terminal.lock().set_options(self.config.term_options());
@@ -308,7 +305,6 @@ impl WindowContext {
             .hint_state
             .update_alphabet(self.config.hints.alphabet());
 
-        // Update cursor blinking.
         let event = Event::new(TerminalEvent::CursorBlinkingChange.into(), None);
         self.event_queue.push(event.into());
 
@@ -332,11 +328,11 @@ impl WindowContext {
     }
 
     /// Add new window config overrides.
-    pub fn add_window_config(&mut self, config: Rc<UiConfig>, options: &ParsedOptions) {
+    pub fn add_window_config(&mut self, config: Rc<UiConfig>, options: &IpcProvider) {
         // Clear previous window errors.
         self.message_buffer.remove_target(LOG_TARGET_IPC_CONFIG);
 
-        self.window_config.extend_from_slice(options);
+        self.window_config.merge_with(options);
 
         // Reload current config to pull new IPC config.
         self.update_config(config);

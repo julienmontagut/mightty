@@ -40,7 +40,6 @@ pub struct SelectionRange {
 }
 
 impl SelectionRange {
-    #[allow(dead_code)]
     pub fn new(start: Point, end: Point, is_block: bool) -> Self {
         assert!(start <= end);
         Self {

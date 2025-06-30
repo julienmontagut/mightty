@@ -687,7 +687,6 @@ impl<T> Term<T> {
     }
 
     /// Mutable access to the raw grid data structure.
-    #[allow(dead_code)]
     pub fn grid_mut(&mut self) -> &mut Grid<Cell> {
         &mut self.grid
     }
@@ -2617,7 +2616,6 @@ pub mod test {
     ///     hello\n:)\r\ntest",
     /// );
     /// ```
-    #[allow(dead_code)]
     pub fn mock_term(content: &str) -> Term<VoidListener> {
         let lines: Vec<&str> = content.split('\n').collect();
         let num_cols = lines

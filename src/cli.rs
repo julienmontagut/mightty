@@ -1,20 +1,14 @@
-use std::cmp::max;
 use std::collections::HashMap;
-use std::ops::{Deref, DerefMut};
 use std::path::PathBuf;
-use std::rc::Rc;
 
 use clap::{ArgAction, Args, Parser, Subcommand, ValueHint};
 use log::{LevelFilter, error};
 use serde::{Deserialize, Serialize};
-use toml::Value;
 
 use crate::terminal::tty::Options as PtyOptions;
 
-use crate::config::UiConfig;
-use crate::config::ui_config::{Program, SerdeReplace};
+use crate::config::ui_config::Program;
 use crate::config::window::{Class, Identity};
-use crate::logging::LOG_TARGET_IPC_CONFIG;
 
 /// CLI options for the main Mightty executable.
 #[derive(Parser, Default, Debug)]
@@ -55,10 +49,6 @@ pub struct Options {
     #[clap(long)]
     pub daemon: bool,
 
-    /// CLI options for config overrides.
-    #[clap(skip)]
-    pub config_options: ParsedOptions,
-
     /// Options which can be passed via IPC.
     #[clap(flatten)]
     pub window_options: WindowOptions,
@@ -70,30 +60,7 @@ pub struct Options {
 
 impl Options {
     pub fn new() -> Self {
-        let mut options = Self::parse();
-
-        // Parse CLI config overrides.
-        options.config_options = options.window_options.config_overrides();
-
-        options
-    }
-
-    /// Override configuration file with options from the CLI.
-    pub fn override_config(&mut self, config: &mut UiConfig) {
-        if self.socket.is_some() {
-            config.general.ipc_socket = true;
-        }
-
-        config.debug.print_events |= self.print_events;
-        config.debug.log_level = max(config.debug.log_level, self.log_level());
-        config.debug.ref_test |= self.ref_test;
-
-        if config.debug.print_events {
-            config.debug.log_level = max(config.debug.log_level, LevelFilter::Info);
-        }
-
-        // Replace CLI options.
-        self.config_options.override_config(config);
+        Self::parse()
     }
 
     /// Logging filter level.
@@ -129,14 +96,6 @@ fn parse_class(input: &str) -> Result<Class, String> {
     };
 
     Ok(Class::new(general, instance))
-}
-
-/// Convert to hex if possible, else decimal
-fn parse_hex_or_decimal(input: &str) -> Option<u32> {
-    input
-        .strip_prefix("0x")
-        .and_then(|value| u32::from_str_radix(value, 16).ok())
-        .or_else(|| input.parse().ok())
 }
 
 /// Terminal specific cli options which can be passed to new windows via IPC.
@@ -275,12 +234,7 @@ pub struct WindowOptions {
     option: Vec<String>,
 }
 
-impl WindowOptions {
-    /// Get the parsed set of CLI config overrides.
-    pub fn config_overrides(&self) -> ParsedOptions {
-        ParsedOptions::from_options(&self.option)
-    }
-}
+impl WindowOptions {}
 
 /// Parameters to the `config` IPC subcommand.
 #[derive(Args, Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
@@ -308,78 +262,6 @@ pub struct IpcGetConfig {
     /// Use `-1` to get the global config.
     #[clap(short, long, allow_hyphen_values = true, env = "MIGHTTY_WINDOW_ID")]
     pub window_id: Option<i128>,
-}
-
-/// Parsed CLI config overrides.
-#[derive(Debug, Default)]
-pub struct ParsedOptions {
-    config_options: Vec<(String, Value)>,
-}
-
-impl ParsedOptions {
-    /// Parse CLI config overrides.
-    pub fn from_options(options: &[String]) -> Self {
-        let mut config_options = Vec::new();
-
-        for option in options {
-            let parsed = match toml::from_str(option) {
-                Ok(parsed) => parsed,
-                Err(err) => {
-                    eprintln!("Ignoring invalid CLI option '{option}': {err}");
-                    continue;
-                }
-            };
-            config_options.push((option.clone(), parsed));
-        }
-
-        Self { config_options }
-    }
-
-    /// Apply CLI config overrides, removing broken ones.
-    pub fn override_config(&mut self, config: &mut UiConfig) {
-        let mut i = 0;
-        while i < self.config_options.len() {
-            let (option, parsed) = &self.config_options[i];
-            match config.replace(parsed.clone()) {
-                Err(err) => {
-                    error!(
-                        target: LOG_TARGET_IPC_CONFIG,
-                        "Unable to override option '{}': {}", option, err
-                    );
-                    self.config_options.swap_remove(i);
-                }
-                Ok(_) => i += 1,
-            }
-        }
-    }
-
-    /// Apply CLI config overrides to a CoW config.
-    pub fn override_config_rc(&mut self, config: Rc<UiConfig>) -> Rc<UiConfig> {
-        // Skip clone without write requirement.
-        if self.config_options.is_empty() {
-            return config;
-        }
-
-        // Override cloned config.
-        let mut config = (*config).clone();
-        self.override_config(&mut config);
-
-        Rc::new(config)
-    }
-}
-
-impl Deref for ParsedOptions {
-    type Target = Vec<(String, Value)>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.config_options
-    }
-}
-
-impl DerefMut for ParsedOptions {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.config_options
-    }
 }
 
 #[cfg(test)]
@@ -474,24 +356,6 @@ mod tests {
         assert!(class.is_err());
     }
 
-    #[test]
-    fn valid_decimal() {
-        let value = parse_hex_or_decimal("10485773");
-        assert_eq!(value, Some(10485773));
-    }
-
-    #[test]
-    fn valid_hex_to_decimal() {
-        let value = parse_hex_or_decimal("0xa0000d");
-        assert_eq!(value, Some(10485773));
-    }
-
-    #[test]
-    fn invalid_hex_to_decimal() {
-        let value = parse_hex_or_decimal("0xa0xx0d");
-        assert_eq!(value, None);
-    }
-
     #[cfg(target_os = "linux")]
     #[test]
     fn completions() {
@@ -513,14 +377,5 @@ mod tests {
 
             assert_eq!(generated, completion);
         }
-
-        // NOTE: Use this to generate new completions.
-        //
-        // let mut file = File::create("../extra/completions/mightty.bash").unwrap();
-        // clap_complete::generate(Shell::Bash, &mut clap, "mightty", &mut file);
-        // let mut file = File::create("../extra/completions/mightty.fish").unwrap();
-        // clap_complete::generate(Shell::Fish, &mut clap, "mightty", &mut file);
-        // let mut file = File::create("../extra/completions/_mightty").unwrap();
-        // clap_complete::generate(Shell::Zsh, &mut clap, "mightty", &mut file);
     }
 }

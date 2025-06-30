@@ -41,11 +41,11 @@ use crate::terminal::term::search::{Match, RegexSearch};
 use crate::terminal::term::{self, ClipboardType, Term, TermMode};
 use crate::terminal::vte::ansi::NamedColor;
 
-use crate::cli::{IpcConfig, ParsedOptions};
+use crate::cli::IpcConfig;
 use crate::cli::{Options as CliOptions, WindowOptions};
 use crate::clipboard::Clipboard;
 use crate::config::ui_config::{HintAction, HintInternalAction};
-use crate::config::{self, UiConfig};
+use crate::config::{self, IpcProvider, UiConfig};
 use crate::daemon::foreground_process_path;
 use crate::daemon::spawn_daemon;
 use crate::display::color::Rgb;
@@ -85,7 +85,7 @@ pub struct Processor {
     windows: HashMap<WindowId, WindowContext, RandomState>,
     proxy: EventLoopProxy<Event>,
     gl_config: Option<GlutinConfig>,
-    global_ipc_options: ParsedOptions,
+    global_ipc_options: IpcProvider,
     cli_options: CliOptions,
     config: Rc<UiConfig>,
 }
@@ -128,7 +128,7 @@ impl Processor {
             config: Rc::new(config),
             clipboard,
             windows: Default::default(),
-            global_ipc_options: Default::default(),
+            global_ipc_options: IpcProvider::from_options(&[]),
             config_monitor,
         }
     }
@@ -163,11 +163,13 @@ impl Processor {
     ) -> Result<(), Box<dyn Error>> {
         let gl_config = self.gl_config.as_ref().unwrap();
 
-        // Override config with CLI/IPC options.
-        let mut config_overrides = options.config_overrides();
-        config_overrides.extend_from_slice(&self.global_ipc_options);
-        let mut config = self.config.clone();
-        config = config_overrides.override_config_rc(config);
+        let mut window_ipc_provider = IpcProvider::from_options(&[]);
+        window_ipc_provider.merge_with(&self.global_ipc_options);
+
+        // Apply IPC configuration to base config
+        let config = window_ipc_provider
+            .apply_to_config(self.config.clone())
+            .unwrap_or_else(|_| self.config.clone());
 
         let window_context = WindowContext::additional(
             gl_config,
@@ -175,7 +177,7 @@ impl Processor {
             self.proxy.clone(),
             config,
             options,
-            config_overrides,
+            window_ipc_provider,
         )?;
 
         self.windows.insert(window_context.id(), window_context);
@@ -282,8 +284,8 @@ impl ApplicationHandler<Event> for Processor {
         match (event.payload, event.window_id.as_ref()) {
             // Process IPC config update.
             (EventType::IpcConfig(ipc_config), window_id) => {
-                // Try and parse options as toml.
-                let mut options = ParsedOptions::from_options(&ipc_config.options);
+                // Parse IPC options using the new IpcProvider.
+                let ipc_provider = IpcProvider::from_options(&ipc_config.options);
 
                 // Override IPC config for each window with matching ID.
                 for (_, window_context) in self
@@ -294,7 +296,7 @@ impl ApplicationHandler<Event> for Processor {
                     if ipc_config.reset {
                         window_context.reset_window_config(self.config.clone());
                     } else {
-                        window_context.add_window_config(self.config.clone(), &options);
+                        window_context.add_window_config(self.config.clone(), &ipc_provider);
                     }
                 }
 
@@ -303,18 +305,18 @@ impl ApplicationHandler<Event> for Processor {
                     if ipc_config.reset {
                         self.global_ipc_options.clear();
                     } else {
-                        self.global_ipc_options.append(&mut options);
+                        self.global_ipc_options.merge_with(&ipc_provider);
                     }
                 }
             }
             // Process IPC config requests.
             (EventType::IpcGetConfig(stream), window_id) => {
-                // Get the config for the requested window ID.
                 let config = match self.windows.iter().find(|(id, _)| window_id == Some(*id)) {
                     Some((_, window_context)) => window_context.config(),
                     None => &self
                         .global_ipc_options
-                        .override_config_rc(self.config.clone()),
+                        .apply_to_config(self.config.clone())
+                        .unwrap_or_else(|_| self.config.clone()),
                 };
 
                 // Convert config to JSON format.
@@ -362,7 +364,6 @@ impl ApplicationHandler<Event> for Processor {
                     }
                 }
             }
-            // Create a new terminal window.
             (EventType::CreateWindow(options), _) => {
                 // XXX Ensure that no context is current when creating a new window,
                 // otherwise it may lock the backing buffer of the
@@ -405,7 +406,6 @@ impl ApplicationHandler<Event> for Processor {
                 }
             }
             (EventType::Terminal(TerminalEvent::Exit), Some(window_id)) => {
-                // Remove the closed terminal.
                 let window_context = match self.windows.entry(*window_id) {
                     // Don't exit when terminal exits if user asked to hold the window.
                     Entry::Occupied(window_context)
@@ -429,7 +429,6 @@ impl ApplicationHandler<Event> for Processor {
                     event_loop.exit();
                 }
             }
-            // NOTE: This event bypasses batching to minimize input latency.
             (EventType::Frame, Some(window_id)) => {
                 if let Some(window_context) = self.windows.get_mut(window_id) {
                     window_context.display.window.has_frame = true;
