@@ -132,8 +132,6 @@ pub fn load(options: &mut Options) -> UiConfig {
     // Build Figment configuration provider
     let mut figment = Figment::new();
 
-    figment = figment.merge(Serialized::defaults(UiConfig::default()));
-
     figment = figment.merge(Env::prefixed("MIGHTTY_"));
 
     if let Some(ref path) = config_path {
@@ -206,7 +204,6 @@ pub fn reload(config_path: &Path, options: &mut Options) -> Result<UiConfig> {
 
     // Build Figment configuration provider for reload
     let figment = Figment::new()
-        .merge(Serialized::defaults(UiConfig::default()))
         .merge(Env::prefixed("MIGHTTY_"))
         .merge(Toml::file(config_path))
         .merge(CliProvider::from_options(options));
