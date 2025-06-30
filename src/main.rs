@@ -32,7 +32,6 @@ mod logging;
 #[cfg(target_os = "macos")]
 mod macos;
 mod message_bar;
-mod migrate;
 mod renderer;
 mod scheduler;
 mod string;
@@ -61,7 +60,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match options.subcommands {
         Some(Subcommands::Msg(options)) => msg(options)?,
-        Some(Subcommands::Migrate(options)) => migrate::migrate(options),
         None => mightty(options)?,
     }
 
