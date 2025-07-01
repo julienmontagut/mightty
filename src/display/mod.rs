@@ -37,7 +37,7 @@ use crate::terminal::term::{
 use crate::terminal::vte::ansi::{CursorShape, NamedColor};
 
 use crate::config::UiConfig;
-use crate::config::debug::RendererPreference;
+
 use crate::config::font::Font;
 use crate::config::window::Dimensions;
 use crate::config::window::StartupMode;
@@ -388,7 +388,6 @@ pub struct Display {
     hint_mouse_point: Option<Point>,
 
     renderer: ManuallyDrop<Renderer>,
-    renderer_preference: Option<RendererPreference>,
 
     surface: ManuallyDrop<Surface<WindowSurface>>,
 
@@ -435,7 +434,7 @@ impl Display {
         let context = gl_context.make_current(&surface)?;
 
         // Create renderer.
-        let mut renderer = Renderer::new(&context, config.debug.renderer)?;
+        let mut renderer = Renderer::new(&context)?;
 
         // Load font common glyphs to accelerate rendering.
         debug!("Filling glyph cache with common glyphs");
@@ -526,7 +525,6 @@ impl Display {
             context: ManuallyDrop::new(context),
             visual_bell: VisualBell::from(&config.bell),
             renderer: ManuallyDrop::new(renderer),
-            renderer_preference: config.debug.renderer,
             surface: ManuallyDrop::new(surface),
             colors: List::from(&config.colors),
             frame_timer: FrameTimer::new(),
@@ -603,8 +601,8 @@ impl Display {
             .expect("failed to reativate context after reset.");
 
         // Recreate renderer.
-        let renderer = Renderer::new(&self.context, self.renderer_preference)
-            .expect("failed to recreate renderer after reset");
+        let renderer =
+            Renderer::new(&self.context).expect("failed to recreate renderer after reset");
         self.renderer = ManuallyDrop::new(renderer);
 
         // Resize the renderer.

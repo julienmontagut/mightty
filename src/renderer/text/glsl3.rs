@@ -137,7 +137,7 @@ impl Glsl3Renderer {
             vao,
             ebo,
             vbo_instance,
-            atlas: vec![Atlas::new(ATLAS_SIZE, false)],
+            atlas: vec![Atlas::new(ATLAS_SIZE)],
             current_atlas: 0,
             active_tex: 0,
             batch: Batch::new(),
@@ -449,7 +449,6 @@ impl TextShaderProgram {
     fn set_rendering_pass(&self, rendering_pass: RenderingPass) {
         let value = match rendering_pass {
             RenderingPass::Background | RenderingPass::SubpixelPass1 => rendering_pass as i32,
-            _ => unreachable!("provided pass is not supported in GLSL3 renderer"),
         };
 
         unsafe {

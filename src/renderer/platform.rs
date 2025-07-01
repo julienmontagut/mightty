@@ -4,7 +4,7 @@ use std::num::NonZeroU32;
 
 use glutin::config::{ColorBufferType, Config, ConfigTemplateBuilder, GetGlConfig};
 use glutin::context::{
-    ContextApi, ContextAttributesBuilder, GlProfile, NotCurrentContext, Robustness, Version,
+    ContextApi, ContextAttributesBuilder, NotCurrentContext, Robustness, Version,
 };
 use glutin::display::{Display, DisplayApiPreference, DisplayFeatures, GetGlDisplay};
 use glutin::error::Result as GlutinResult;
@@ -111,33 +111,12 @@ pub fn create_gl_context(
         builder = builder.with_robustness(Robustness::RobustLoseContextOnReset);
     }
 
-    let mut profiles = [
-        builder
-            .clone()
-            .with_context_api(ContextApi::OpenGl(Some(Version::new(3, 3))))
-            .build(raw_window_handle),
-        // Try gles before OpenGL 2.1 as it tends to be more stable.
-        builder
-            .clone()
-            .with_context_api(ContextApi::Gles(Some(Version::new(2, 0))))
-            .build(raw_window_handle),
-        builder
-            .with_profile(GlProfile::Compatibility)
-            .with_context_api(ContextApi::OpenGl(Some(Version::new(2, 1))))
-            .build(raw_window_handle),
-    ]
-    .into_iter();
+    // Only use OpenGL 3.3 core profile
+    let profile = builder
+        .with_context_api(ContextApi::OpenGl(Some(Version::new(3, 3))))
+        .build(raw_window_handle);
 
-    // Try the optimal config first.
-    let mut picked_context =
-        unsafe { gl_display.create_context(gl_config, &profiles.next().unwrap()) };
-
-    // Try the fallback ones.
-    while let (Err(_), Some(profile)) = (picked_context.as_ref(), profiles.next()) {
-        picked_context = unsafe { gl_display.create_context(gl_config, &profile) };
-    }
-
-    picked_context
+    unsafe { gl_display.create_context(gl_config, &profile) }
 }
 
 pub fn create_gl_surface(

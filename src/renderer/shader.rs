@@ -12,9 +12,6 @@ pub struct ShaderProgram(GLuint);
 pub enum ShaderVersion {
     /// OpenGL 3.3 core shaders.
     Glsl3,
-
-    /// OpenGL ES 2.0 shaders.
-    Gles2,
 }
 
 impl ShaderVersion {
@@ -22,7 +19,6 @@ impl ShaderVersion {
     fn shader_header(&self) -> &'static str {
         match self {
             Self::Glsl3 => "#version 330 core\n",
-            Self::Gles2 => "#version 100\n#define GLES2_RENDERER\n",
         }
     }
 }

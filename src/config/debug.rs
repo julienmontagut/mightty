@@ -17,9 +17,6 @@ pub struct Debug {
     /// Highlight damage information produced by mightty.
     pub highlight_damage: bool,
 
-    /// The renderer mightty should be using.
-    pub renderer: Option<RendererPreference>,
-
     /// Use EGL as display API if the current platform allows it.
     pub prefer_egl: bool,
 
@@ -37,21 +34,8 @@ impl Default for Debug {
             render_timer: Default::default(),
             highlight_damage: Default::default(),
             ref_test: Default::default(),
-            renderer: Default::default(),
+
             prefer_egl: Default::default(),
         }
     }
-}
-
-/// The renderer configuration options.
-#[derive(Deserialize, Serialize, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum RendererPreference {
-    /// OpenGL 3.3 renderer.
-    Glsl3,
-
-    /// GLES 2 renderer, with optional extensions like dual source blending.
-    Gles2,
-
-    /// Pure GLES 2 renderer.
-    Gles2Pure,
 }

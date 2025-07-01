@@ -10,12 +10,12 @@ use crate::gl::types::*;
 
 mod atlas;
 mod builtin_font;
-mod gles2;
+
 mod glsl3;
 pub mod glyph_cache;
 
 use atlas::Atlas;
-pub use gles2::Gles2Renderer;
+
 pub use glsl3::Glsl3Renderer;
 pub use glyph_cache::GlyphCache;
 use glyph_cache::{Glyph, LoadGlyph};
@@ -30,20 +30,14 @@ bitflags! {
     }
 }
 
-/// Rendering passes, for both GLES2 and GLSL3 renderer.
+/// Rendering passes for GLSL3 renderer.
 #[repr(u8)]
 enum RenderingPass {
     /// Rendering pass used to render background color in text shaders.
     Background = 0,
 
-    /// The first pass to render text with both GLES2 and GLSL3 renderers.
+    /// The first pass to render text with GLSL3 renderer.
     SubpixelPass1 = 1,
-
-    /// The second pass to render text with GLES2 renderer.
-    SubpixelPass2 = 2,
-
-    /// The third pass to render text with GLES2 renderer.
-    SubpixelPass3 = 3,
 }
 
 pub trait TextRenderer<'a> {

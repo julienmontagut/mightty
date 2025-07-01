@@ -7,7 +7,7 @@ use std::{fmt, ptr};
 
 use ahash::RandomState;
 use crossfont::Metrics;
-use glutin::context::{ContextApi, GlContext, PossiblyCurrentContext};
+use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
 use log::{LevelFilter, debug, info};
 use unicode_width::UnicodeWidthChar;
@@ -15,7 +15,6 @@ use unicode_width::UnicodeWidthChar;
 use crate::terminal::index::Point;
 use crate::terminal::term::cell::Flags;
 
-use crate::config::debug::RendererPreference;
 use crate::display::SizeInfo;
 use crate::display::color::Rgb;
 use crate::display::content::RenderableCell;
@@ -31,7 +30,7 @@ mod text;
 pub use text::{GlyphCache, LoaderApi};
 
 use shader::ShaderVersion;
-use text::{Gles2Renderer, Glsl3Renderer, TextRenderer};
+use text::{Glsl3Renderer, TextRenderer};
 
 macro_rules! cstr {
     ($s:literal) => {
@@ -88,14 +87,8 @@ impl From<String> for Error {
 }
 
 #[derive(Debug)]
-enum TextRendererProvider {
-    Gles2(Gles2Renderer),
-    Glsl3(Glsl3Renderer),
-}
-
-#[derive(Debug)]
 pub struct Renderer {
-    text_renderer: TextRendererProvider,
+    text_renderer: Glsl3Renderer,
     rect_renderer: RectRenderer,
     robustness: bool,
 }
@@ -122,12 +115,8 @@ fn gl_get_string(
 impl Renderer {
     /// Create a new renderer.
     ///
-    /// This will automatically pick between the GLES2 and GLSL3 renderer based on the GPU's
-    /// supported OpenGL version.
-    pub fn new(
-        context: &PossiblyCurrentContext,
-        renderer_preference: Option<RendererPreference>,
-    ) -> Result<Self, Error> {
+    /// This will use the GLSL3 renderer with OpenGL 3.3.
+    pub fn new(context: &PossiblyCurrentContext) -> Result<Self, Error> {
         // We need to load OpenGL functions once per instance, but only after we make our context
         // current due to WGL limitations.
         if !GL_FUNS_LOADED.swap(true, Ordering::Relaxed) {
@@ -148,26 +137,9 @@ impl Renderer {
         // Check if robustness is supported.
         let robustness = Self::supports_robustness();
 
-        let is_gles_context = matches!(context.context_api(), ContextApi::Gles(_));
-
-        // Use the config option to enforce a particular renderer configuration.
-        let (use_glsl3, allow_dsb) = match renderer_preference {
-            Some(RendererPreference::Glsl3) => (true, true),
-            Some(RendererPreference::Gles2) => (false, true),
-            Some(RendererPreference::Gles2Pure) => (false, false),
-            None => (shader_version.as_ref() >= "3.3" && !is_gles_context, true),
-        };
-
-        let (text_renderer, rect_renderer) = if use_glsl3 {
-            let text_renderer = TextRendererProvider::Glsl3(Glsl3Renderer::new()?);
-            let rect_renderer = RectRenderer::new(ShaderVersion::Glsl3)?;
-            (text_renderer, rect_renderer)
-        } else {
-            let text_renderer =
-                TextRendererProvider::Gles2(Gles2Renderer::new(allow_dsb, is_gles_context)?);
-            let rect_renderer = RectRenderer::new(ShaderVersion::Gles2)?;
-            (text_renderer, rect_renderer)
-        };
+        // Always use GLSL3 renderer with OpenGL 3.3
+        let text_renderer = Glsl3Renderer::new()?;
+        let rect_renderer = RectRenderer::new(ShaderVersion::Glsl3)?;
 
         // Enable debug logging for OpenGL as well.
         if log::max_level() >= LevelFilter::Debug && GlExtensions::contains("GL_KHR_debug") {
@@ -192,14 +164,7 @@ impl Renderer {
         glyph_cache: &mut GlyphCache,
         cells: I,
     ) {
-        match &mut self.text_renderer {
-            TextRendererProvider::Gles2(renderer) => {
-                renderer.draw_cells(size_info, glyph_cache, cells)
-            }
-            TextRendererProvider::Glsl3(renderer) => {
-                renderer.draw_cells(size_info, glyph_cache, cells)
-            }
-        }
+        self.text_renderer.draw_cells(size_info, glyph_cache, cells)
     }
 
     /// Draw a string in a variable location. Used for printing the render timer, warnings and
@@ -245,10 +210,7 @@ impl Renderer {
     where
         F: FnOnce(LoaderApi<'_>) -> T,
     {
-        match &mut self.text_renderer {
-            TextRendererProvider::Gles2(renderer) => renderer.with_loader(func),
-            TextRendererProvider::Glsl3(renderer) => renderer.with_loader(func),
-        }
+        self.text_renderer.with_loader(func)
     }
 
     /// Draw all rectangles simultaneously to prevent excessive program swaps.
@@ -362,10 +324,7 @@ impl Renderer {
     /// Resize the renderer.
     pub fn resize(&self, size_info: &SizeInfo) {
         self.set_viewport(size_info);
-        match &self.text_renderer {
-            TextRendererProvider::Gles2(renderer) => renderer.resize(size_info),
-            TextRendererProvider::Glsl3(renderer) => renderer.resize(size_info),
-        }
+        self.text_renderer.resize(size_info)
     }
 }
 

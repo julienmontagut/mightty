@@ -47,9 +47,8 @@ void main() {
         // Update wide char x dimension so it'll cover the following spacer.
         occupiedCells = 2;
 
-        // Since we don't perform bitwise operations due to limitations of
-        // the GLES2 renderer,we subtract wide char bits keeping only colored.
-        fg.a = round(fg.a - WIDE_CHAR);
+        // Clear the WIDE_CHAR bit using bitwise operations, keeping only the colored flag.
+        fg.a = float(int(fg.a) & (~WIDE_CHAR));
     }
 
     if (renderingPass == 0) {

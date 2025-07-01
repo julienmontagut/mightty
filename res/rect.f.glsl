@@ -1,11 +1,3 @@
-#if defined(GLES2_RENDERER)
-#define float_t mediump float
-#define color_t mediump vec4
-#define FRAG_COLOR gl_FragColor
-
-varying color_t color;
-
-#else
 #define float_t float
 #define color_t vec4
 
@@ -13,8 +5,6 @@ out vec4 FragColor;
 #define FRAG_COLOR FragColor
 
 flat in color_t color;
-
-#endif
 
 uniform float_t cellWidth;
 uniform float_t cellHeight;
