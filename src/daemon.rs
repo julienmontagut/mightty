@@ -1,5 +1,4 @@
 use std::ffi::OsStr;
-#[cfg(not(target_os = "macos"))]
 use std::fs;
 use std::io;
 use std::process::{Command, Stdio};
@@ -12,6 +11,7 @@ use std::path::PathBuf;
 
 use libc::pid_t;
 
+use crate::config::defaults;
 #[cfg(target_os = "macos")]
 use crate::macos;
 
@@ -70,16 +70,19 @@ pub fn foreground_process_path(
         pid = shell_pid as pid_t;
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "freebsd")))]
-    let link_path = format!("/proc/{pid}/cwd");
-    #[cfg(target_os = "freebsd")]
-    let link_path = format!("/compat/linux/proc/{}/cwd", pid);
-
-    #[cfg(not(target_os = "macos"))]
-    let cwd = fs::read_link(link_path)?;
-
-    #[cfg(target_os = "macos")]
-    let cwd = macos::proc::cwd(pid)?;
+    let cwd = if defaults::USES_PROC_FS {
+        let link_path = defaults::proc_cwd_path(pid);
+        fs::read_link(link_path)?
+    } else {
+        #[cfg(target_os = "macos")]
+        {
+            macos::proc::cwd(pid)?
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            return Err("Platform not supported for process working directory detection".into());
+        }
+    };
 
     Ok(cwd)
 }

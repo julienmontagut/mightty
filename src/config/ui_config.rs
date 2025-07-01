@@ -6,6 +6,8 @@ use std::mem;
 use std::path::PathBuf;
 use std::rc::Rc;
 
+use super::defaults;
+
 /// Trait for types that can be replaced with serde values.
 pub trait SerdeReplace {
     fn replace(&mut self, value: toml::Value) -> Result<(), Box<dyn Error>>;
@@ -241,10 +243,7 @@ impl Default for Hints {
         let regex = LazyRegex(Rc::new(RefCell::new(pattern)));
         let content = HintContent::new(Some(regex), true);
 
-        #[cfg(not(target_os = "macos"))]
-        let action = HintAction::Command(Program::Just(String::from("xdg-open")));
-        #[cfg(target_os = "macos")]
-        let action = HintAction::Command(Program::Just(String::from("open")));
+        let action = HintAction::Command(Program::Just(String::from(defaults::DEFAULT_URL_OPENER)));
 
         Self {
             enabled: vec![Rc::new(Hint {

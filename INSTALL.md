@@ -25,17 +25,16 @@ Please refer to the [Dependencies](#dependencies) section.
         5. [openSUSE](#opensuse)
         6. [Slackware](#slackware)
         7. [Void Linux](#void-linux)
-        8. [FreeBSD](#freebsd)
-        9. [OpenBSD](#openbsd)
-        10. [Solus](#solus)
-        11. [NixOS/Nixpkgs](#nixosnixpkgs)
-        12. [Gentoo](#gentoo)
-        13. [Clear Linux](#clear-linux)
-        14. [GNU Guix](#gnu-guix)
-        15. [Alpine Linux](#alpine-linux)
+        8. [OpenBSD](#openbsd)
+        9. [Solus](#solus)
+        10. [NixOS/Nixpkgs](#nixosnixpkgs)
+        11. [Gentoo](#gentoo)
+        12. [Clear Linux](#clear-linux)
+        13. [GNU Guix](#gnu-guix)
+        14. [Alpine Linux](#alpine-linux)
         17. [Other](#other)
 2. [Building](#building)
-    1. [Linux/Windows/BSD](#linux--windows--bsd)
+    1. [Linux/BSD](#linux--bsd)
     2. [macOS](#macos)
 3. [Post Build](#post-build)
     1. [Terminfo](#terminfo)
@@ -151,16 +150,6 @@ compiling Mightty:
 xbps-install cmake freetype-devel expat-devel fontconfig-devel libxcb-devel pkg-config python3
 ```
 
-#### FreeBSD
-
-On FreeBSD, you need a few extra libraries to build Mightty. Here's a `pkg`
-command that should install all of them. If something is still found to be
-missing, please open an issue.
-
-```sh
-pkg install cmake freetype2 fontconfig pkgconf python3
-```
-
 #### OpenBSD
 
 On OpenBSD 6.5, you need [Xenocara](https://xenocara.org) and Rust to build
@@ -241,7 +230,7 @@ filling in this section of the README.
 
 ## Building
 
-### Linux / Windows / BSD
+### Linux / BSD
 
 ```sh
 cargo build --release

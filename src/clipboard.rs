@@ -42,6 +42,7 @@ impl Clipboard {
 
 impl Default for Clipboard {
     fn default() -> Self {
+        // Platform-specific clipboard initialization using compile-time detection
         #[cfg(target_os = "macos")]
         return Self {
             clipboard: Box::new(ClipboardContext::new().unwrap()),
