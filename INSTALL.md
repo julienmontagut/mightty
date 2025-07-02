@@ -1,15 +1,25 @@
+# Installation
+
+
+## macOS and Linux
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/julienmontagut/mightty/releases/latest/download/mightty-installer.sh | sh
+```
+
+## Homebrew
+```bash
+brew install julienmontagut/homebrew/mightty
+```
+
 # Cargo Installation
 
-If you're just interested in the Mightty binary and you don't need the
-[terminfo file](#terminfo), [desktop entry](#desktop-entry),
-[manual page](#manual-page) or [shell completions](#shell-completions), you can
-install it directly through cargo:
+If you prefer to build from source, you can install directly through cargo:
 
 ```sh
 cargo install mightty
 ```
 
-Note that you will still need to install the dependencies for your OS of choice.
+Note that you will still need to install the dependencies for your OS.
 Please refer to the [Dependencies](#dependencies) section.
 
 # Manual Installation
@@ -19,23 +29,9 @@ Please refer to the [Dependencies](#dependencies) section.
     2. [Rust Compiler](#install-the-rust-compiler-with-rustup)
     3. [Dependencies](#dependencies)
         1. [Debian/Ubuntu](#debianubuntu)
-        2. [Arch Linux](#arch-linux)
-        3. [Fedora](#fedora)
-        4. [CentOS/RHEL 7](#centosrhel-7)
-        5. [openSUSE](#opensuse)
-        6. [Slackware](#slackware)
-        7. [Void Linux](#void-linux)
-        8. [OpenBSD](#openbsd)
-        9. [Solus](#solus)
-        10. [NixOS/Nixpkgs](#nixosnixpkgs)
-        11. [Gentoo](#gentoo)
-        12. [Clear Linux](#clear-linux)
-        13. [GNU Guix](#gnu-guix)
-        14. [Alpine Linux](#alpine-linux)
-        17. [Other](#other)
+        2. [Fedora/RHEL](#fedorarhel)
+        3. [macOS](#macos-dependencies)
 2. [Building](#building)
-    1. [Linux/BSD](#linux--bsd)
-    2. [macOS](#macos)
 3. [Post Build](#post-build)
     1. [Terminfo](#terminfo)
     2. [Desktop Entry](#desktop-entry)
@@ -84,160 +80,36 @@ something is still found to be missing, please open an issue.
 ```sh
 apt install cmake g++ pkg-config libfontconfig1-dev libxcb-xfixes0-dev libxkbcommon-dev python3
 ```
+#### Fedora/RHEL
 
-#### Arch Linux
-
-On Arch Linux, you need a few extra libraries to build Mightty. Here's a
-`pacman` command that should install all of them. If something is still found
-to be missing, please open an issue.
+On Fedora and RHEL-based systems, install the required dependencies:
 
 ```sh
-pacman -S cmake freetype2 fontconfig pkg-config make libxcb libxkbcommon python
+# Fedora
+sudo dnf install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel gcc-c++
+
+# RHEL/CentOS 8+
+sudo dnf install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel
+sudo dnf group install "Development Tools"
 ```
 
-#### Fedora
+#### macOS Dependencies
 
-On Fedora, you need a few extra libraries to build Mightty. Here's a `dnf`
-command that should install all of them. If something is still found to be
-missing, please open an issue.
+On macOS, install the required dependencies using Homebrew:
 
 ```sh
-dnf install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel g++
+brew install cmake pkg-config
 ```
-
-#### CentOS/RHEL 7
-
-On CentOS/RHEL 7, you need a few extra libraries to build Mightty. Here's a `yum`
-command that should install all of them. If something is still found to be
-missing, please open an issue.
-
-```sh
-yum install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel xcb-util-devel
-yum group install "Development Tools"
-```
-
-#### RHEL 8
-
-On RHEL 8, like RHEL 7, you need a few extra libraries to build Mightty. Here's a `dnf`
-command that should install all of them. If something is still found to be
-missing, please open an issue.
-
-```sh
-dnf install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel
-dnf group install "Development Tools"
-```
-
-#### openSUSE
-
-On openSUSE, you need a few extra libraries to build Mightty. Here's
-a `zypper` command that should install all of them. If something is
-still found to be missing, please open an issue.
-
-```sh
-zypper install cmake freetype-devel fontconfig-devel libxcb-devel libxkbcommon-devel gcc-c++
-```
-
-#### Slackware
-
-Compiles out of the box for 14.2
-
-#### Void Linux
-
-On [Void Linux](https://voidlinux.org), install following packages before
-compiling Mightty:
-
-```sh
-xbps-install cmake freetype-devel expat-devel fontconfig-devel libxcb-devel pkg-config python3
-```
-
-#### OpenBSD
-
-On OpenBSD 6.5, you need [Xenocara](https://xenocara.org) and Rust to build
-Mightty, plus Python 3 to build its XCB dependency. If something is still
-found to be missing, please open an issue.
-
-```sh
-pkg_add rust python
-```
-
-Select the package for Python 3 (e.g. `python-3.6.8p0`) when prompted.
-
-The default user limits in OpenBSD are insufficient to build Mightty. A
-`datasize-cur` of at least 3GB is recommended (see [login.conf](https://man.openbsd.org/login.conf)).
-
-#### Solus
-
-On [Solus](https://solus-project.com/), you need a few extra libraries to build
-Mightty. Here's a `eopkg` command that should install all of them. If
-something is still found to be missing, please open an issue.
-
-```sh
-eopkg install fontconfig-devel
-```
-
-#### NixOS/Nixpkgs
-
-The following command can be used to get a shell with all development
-dependencies on [NixOS](https://nixos.org).
-
-```sh
-nix-shell -A mightty '<nixpkgs>'
-```
-
-#### Gentoo
-
-On Gentoo, you need a few extra libraries to build Mightty. The following
-command should install all of them. If something is still found to be missing,
-please open an issue.
-
-```sh
-emerge --onlydeps x11-terms/mightty
-```
-
-#### Clear Linux
-
-On Clear Linux, you need a few extra libraries to build Mightty. Here's a
-`swupd` command that should install all of them. If something is still found
-to be missing, please open an issue.
-
-```sh
-swupd bundle-add devpkg-expat devpkg-freetype devpkg-libxcb devpkg-fontconfig
-```
-
-#### GNU Guix
-
-The following command can be used to get a shell with all development
-dependencies on [GNU Guix](https://guix.gnu.org/).
-
-```sh
-guix environment mightty
-```
-
-#### Alpine Linux
-
-On Alpine Linux, you need a few extra libraries to build Mightty. Here's an
-`apk` command that should install all of them. If something is still found to
-be missing, please open an issue.
-
-```sh
-sudo apk add cmake pkgconf freetype-dev fontconfig-dev python3 libxcb-dev
-```
-
-#### Other
-
-If you build Mightty on another distribution, we would love some help
-filling in this section of the README.
 
 ## Building
 
-### Linux / BSD
+### All Platforms
 
 ```sh
 cargo build --release
 ```
 
-On Linux/BSD, if it is desired to build Mightty without support for either the
-X11 or Wayland rendering backend the following commands can be used.
+On Linux, you can build with specific rendering backend support:
 
 ```sh
 # Force support for only Wayland
@@ -249,21 +121,15 @@ cargo build --release --no-default-features --features=x11
 
 If all goes well, this should place a binary at `target/release/mightty`.
 
-### macOS
+### Universal Binary (macOS)
 
-```sh
-make app
-cp -r target/release/osx/Mightty.app /Applications/
-```
-
-#### Universal Binary
-
-The following will build an executable that runs on both x86 and ARM macos
-architectures:
+To build a universal binary that runs on both Intel and Apple Silicon:
 
 ```sh
 rustup target add x86_64-apple-darwin aarch64-apple-darwin
-make app-universal
+cargo build --release --target=x86_64-apple-darwin
+cargo build --release --target=aarch64-apple-darwin
+lipo target/{x86_64,aarch64}-apple-darwin/release/mightty -create -output target/release/mightty-universal
 ```
 
 ## Post Build
@@ -294,7 +160,7 @@ sudo tic -xe mightty,mightty-direct extra/mightty.info
 
 ### Desktop Entry
 
-Many Linux and BSD distributions support desktop entries for adding applications
+Many Linux distributions support desktop entries for adding applications
 to system menus. This will install the desktop entry for Mightty:
 
 ```sh

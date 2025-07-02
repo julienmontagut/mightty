@@ -2,13 +2,13 @@
 Type=Application
 TryExec=mightty
 Exec=mightty
-Icon=Alacritty
+Icon=Mightty
 Terminal=false
 Categories=System;TerminalEmulator;
 
 Name=Mightty
 GenericName=Terminal
-Comment=A fast, cross-platform, OpenGL terminal emulator
+Comment=A fast, modern terminal emulator with vim mode
 StartupNotify=true
 StartupWMClass=Mightty
 Actions=New;

@@ -25,13 +25,29 @@ You can find an overview over the features available in Mightty [here](./docs/fe
 
 ## Installation
 
-Mightty can be installed by using various package managers on Linux and macOS.
+### Quick Install (Recommended)
 
-Prebuilt binaries for macOS can also be downloaded from the
-[GitHub releases page](https://github.com/mightty/mightty/releases).
+#### macOS and Linux
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/julienmontagut/mightty/releases/latest/download/mightty-installer.sh | sh
+```
 
-For everyone else, the detailed instructions to install Mightty can be found
-[here](INSTALL.md).
+#### Homebrew
+```bash
+brew install julienmontagut/homebrew/mightty
+```
+
+#### Cargo
+```bash
+cargo install mightty
+```
+
+### Other Installation Methods
+
+Prebuilt binaries for macOS and Linux can also be downloaded from the
+[GitHub releases page](https://github.com/julienmontagut/mightty/releases).
+
+For building from source, detailed instructions can be found in [INSTALL.md](INSTALL.md).
 
 ## Configuration
 
