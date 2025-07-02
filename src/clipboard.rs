@@ -7,7 +7,7 @@ use crate::terminal::term::ClipboardType;
 use copypasta::ClipboardContext;
 use copypasta::ClipboardProvider;
 use copypasta::nop_clipboard::NopClipboardContext;
-#[cfg(all(feature = "wayland", not(target_os = "macos")))]
+#[cfg(target_os = "linux")]
 use copypasta::wayland_clipboard;
 
 pub struct Clipboard {
@@ -18,7 +18,7 @@ pub struct Clipboard {
 impl Clipboard {
     pub unsafe fn new(display: RawDisplayHandle) -> Self {
         match display {
-            #[cfg(all(feature = "wayland", not(target_os = "macos")))]
+            #[cfg(target_os = "linux")]
             RawDisplayHandle::Wayland(display) => {
                 let (selection, clipboard) =
                     wayland_clipboard::create_clipboards_from_external(display.display.as_ptr());

@@ -414,14 +414,6 @@ impl CliProvider {
         }
     }
 
-    /// Helper to merge a TOML table into the dictionary
-    fn merge_table_into_dict(dict: &mut Dict, table: toml::Table) {
-        for (key, value) in table {
-            let figment_value = Self::toml_value_to_figment_value(value);
-            dict.insert(key, figment_value);
-        }
-    }
-
     /// Convert TOML value to Figment value
     fn toml_value_to_figment_value(value: toml::Value) -> FigmentValue {
         match value {
@@ -566,11 +558,6 @@ impl IpcProvider {
 
         let new_config: UiConfig = figment.extract().map_err(Error::Figment)?;
         Ok(std::rc::Rc::new(new_config))
-    }
-
-    /// Check if this provider has any configuration
-    pub fn is_empty(&self) -> bool {
-        self.dict.is_empty()
     }
 
     /// Combine this provider with another IPC provider

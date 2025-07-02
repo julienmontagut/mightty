@@ -5,6 +5,7 @@ use clap::{ArgAction, Args, Parser, Subcommand, ValueHint};
 use log::{LevelFilter, error};
 use serde::{Deserialize, Serialize};
 
+use crate::config::UiConfig;
 use crate::terminal::tty::Options as PtyOptions;
 
 use crate::config::ui_config::Program;
@@ -80,6 +81,16 @@ impl Options {
             // Quiet.
             (1, _) => LevelFilter::Error,
             (..) => LevelFilter::Off,
+        }
+    }
+}
+
+impl Options {
+    pub fn override_config(&self, config: &mut UiConfig) {
+        // Override window title if provided
+        if let Some(title) = &self.window_options.window_identity.title {
+            config.window.identity.title = title.clone();
+            config.window.dynamic_title = true;
         }
     }
 }
@@ -267,6 +278,7 @@ pub struct IpcGetConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::UiConfig;
 
     #[cfg(target_os = "linux")]
     use std::fs::File;
@@ -277,7 +289,7 @@ mod tests {
     use clap::CommandFactory;
     #[cfg(target_os = "linux")]
     use clap_complete::Shell;
-    use toml::Table;
+    use toml::{Table, Value};
 
     #[test]
     fn dynamic_title_ignoring_options_by_default() {

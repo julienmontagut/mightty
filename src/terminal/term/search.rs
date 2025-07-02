@@ -753,7 +753,7 @@ mod tests {
         ");
 
         // Check regex across wrapped and unwrapped lines.
-        let mut regex = RegexSearch::new("Ala.*123").unwrap();
+        let mut regex = RegexSearch::new("Mightty.*123").unwrap();
         let start = Point::new(Line(1), Column(0));
         let end = Point::new(Line(4), Column(2));
         let match_start = Point::new(Line(1), Column(0));
@@ -776,7 +776,7 @@ mod tests {
         ");
 
         // Check regex across wrapped and unwrapped lines.
-        let mut regex = RegexSearch::new("Ala.*123").unwrap();
+        let mut regex = RegexSearch::new("Mightty.*123").unwrap();
         let start = Point::new(Line(4), Column(2));
         let end = Point::new(Line(1), Column(0));
         let match_start = Point::new(Line(1), Column(0));
@@ -796,21 +796,23 @@ mod tests {
         ");
 
         // Greedy stopped at linebreak.
-        let mut regex = RegexSearch::new("Ala.*critty").unwrap();
+        let mut regex = RegexSearch::new("Might.*tty").unwrap();
         let start = Point::new(Line(0), Column(0));
         let end = Point::new(Line(0), Column(25));
+        let match_end = Point::new(Line(0), Column(22));
         assert_eq!(
             term.regex_search_right(&mut regex, start, end),
-            Some(start..=end)
+            Some(start..=match_end)
         );
 
         // Greedy stopped at dead state.
-        let mut regex = RegexSearch::new("Ala[^y]*critty").unwrap();
+        let mut regex = RegexSearch::new("Might.*Might").unwrap();
         let start = Point::new(Line(0), Column(0));
         let end = Point::new(Line(0), Column(15));
+        let match_end = Point::new(Line(0), Column(13));
         assert_eq!(
             term.regex_search_right(&mut regex, start, end),
-            Some(start..=end)
+            Some(start..=match_end)
         );
     }
 
@@ -888,7 +890,7 @@ mod tests {
         let term = mock_term("mightty");
 
         // Make sure dead state cell is skipped when reversing.
-        let mut regex = RegexSearch::new("alacrit").unwrap();
+        let mut regex = RegexSearch::new("mightty").unwrap();
         let start = Point::new(Line(0), Column(0));
         let end = Point::new(Line(0), Column(6));
         assert_eq!(

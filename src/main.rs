@@ -1,16 +1,3 @@
-//! Mightty - The GPU Enhanced Terminal.
-
-#![warn(rust_2018_idioms, future_incompatible)]
-#![deny(clippy::all, clippy::if_not_else, clippy::enum_glob_use)]
-#![cfg_attr(clippy, deny(warnings))]
-// With the default subsystem, 'console', windows creates an additional console
-// window for the program.
-// This is silently ignored on non-windows systems.
-// See https://msdn.microsoft.com/en-us/library/4cc7ya5b.aspx for more details.
-
-#[cfg(not(any(feature = "wayland", target_os = "macos")))]
-compile_error!(r#"the "wayland" feature must be enabled"#);
-
 use std::error::Error;
 use std::fmt::Write as _;
 use std::io::{self, Write};
@@ -121,7 +108,7 @@ fn mightty(mut options: Options) -> Result<(), Box<dyn Error>> {
     info!("Welcome to Mightty");
     info!("Version {}", env!("VERSION"));
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "linux")]
     info!("Running on Wayland");
 
     // Load configuration file.

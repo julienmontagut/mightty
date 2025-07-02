@@ -18,8 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Stable
         run: cargo test
-      - name: Stable (no default features)
-        run: cargo test -p mightty_terminal --no-default-features
+
       - name: Oldstable
         run: |
           rustup default $(cat Cargo.toml | grep "rust-version" | sed 's/.*"\(.*\)".*/\1/')

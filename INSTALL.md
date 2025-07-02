@@ -109,14 +109,11 @@ brew install cmake pkg-config
 cargo build --release
 ```
 
-On Linux, you can build with specific rendering backend support:
+On Linux, Wayland support is enabled by default and is the only supported backend:
 
 ```sh
-# Force support for only Wayland
-cargo build --release --no-default-features --features=wayland
-
-# Force support for only X11
-cargo build --release --no-default-features --features=x11
+# Standard build (Wayland enabled by default)
+cargo build --release
 ```
 
 If all goes well, this should place a binary at `target/release/mightty`.
