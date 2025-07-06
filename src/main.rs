@@ -1,201 +1,27 @@
-use std::error::Error;
-use std::fmt::Write as _;
-use std::io::{self, Write};
-use std::path::PathBuf;
-use std::{env, fs};
+use app::App;
+use config::Config;
+use eframe::egui::ViewportBuilder;
 
-use log::info;
-use winit::event_loop::EventLoop;
-
-mod cli;
-mod clipboard;
+mod app;
 mod config;
-mod daemon;
-mod display;
-mod event;
-mod input;
-mod ipc;
-mod logging;
-#[cfg(target_os = "macos")]
-mod macos;
-mod message_bar;
-mod renderer;
-mod scheduler;
-mod string;
-mod terminal;
-mod window_context;
 
-mod gl {
-    #![allow(clippy::all)]
-    include!(concat!(env!("OUT_DIR"), "/gl_bindings.rs"));
-}
+#[tokio::main]
+async fn main() -> eframe::Result {
+    let options: Config = config::config();
 
-use crate::cli::MessageOptions;
-#[cfg(not(target_os = "macos"))]
-use crate::cli::SocketMessage;
-use crate::cli::{Options, Subcommands};
-use crate::config::UiConfig;
-use crate::config::monitor::ConfigMonitor;
-use crate::event::{Event, Processor};
-#[cfg(target_os = "macos")]
-use crate::macos::locale;
-use crate::terminal::tty;
-
-fn main() -> Result<(), Box<dyn Error>> {
-    // Load command line options.
-    let options = Options::new();
-
-    match options.subcommands {
-        Some(Subcommands::Msg(options)) => msg(options)?,
-        None => mightty(options)?,
-    }
-
-    Ok(())
-}
-
-/// `msg` subcommand entrypoint.
-#[allow(unused_mut)]
-fn msg(mut options: MessageOptions) -> Result<(), Box<dyn Error>> {
-    #[cfg(not(target_os = "macos"))]
-    if let SocketMessage::CreateWindow(window_options) = &mut options.message {
-        window_options.activation_token = env::var("XDG_ACTIVATION_TOKEN")
-            .or_else(|_| env::var("DESKTOP_STARTUP_ID"))
-            .ok();
-    }
-    ipc::send_message(options.socket, options.message).map_err(|err| err.into())
-}
-
-/// Temporary files stored for Mightty.
-///
-/// This stores temporary files to automate their destruction through its `Drop` implementation.
-struct TemporaryFiles {
-    socket_path: Option<PathBuf>,
-    log_file: Option<PathBuf>,
-}
-
-impl Drop for TemporaryFiles {
-    fn drop(&mut self) {
-        // Clean up the IPC socket file.
-        if let Some(socket_path) = &self.socket_path {
-            let _ = fs::remove_file(socket_path);
-        }
-
-        // Clean up logfile.
-        if let Some(log_file) = &self.log_file {
-            if fs::remove_file(log_file).is_ok() {
-                let _ = writeln!(
-                    io::stdout(),
-                    "Deleted log file at \"{}\"",
-                    log_file.display()
-                );
-            }
-        }
-    }
-}
-
-/// Run main Mightty entrypoint.
-///
-/// Creates a window, the terminal state, PTY, I/O event loop, input processor,
-/// config change monitor, and runs the main display loop.
-fn mightty(mut options: Options) -> Result<(), Box<dyn Error>> {
-    // Setup winit event loop.
-    let window_event_loop = EventLoop::<Event>::with_user_event().build()?;
-
-    // Initialize the logger as soon as possible as to capture output from other subsystems.
-    let log_file = logging::initialize(&options, window_event_loop.create_proxy())
-        .expect("Unable to initialize logger");
-
-    info!("Welcome to Mightty");
-    info!("Version {}", env!("VERSION"));
-
-    #[cfg(target_os = "linux")]
-    info!("Running on Wayland");
-
-    // Load configuration file.
-    let config = config::load(&mut options);
-    log_config_path(&config);
-
-    // Update the log level from config.
-    log::set_max_level(config.debug.log_level);
-
-    // Set tty environment variables.
-    tty::setup_env();
-
-    // Set env vars from config.
-    for (key, value) in config.env.iter() {
-        unsafe {
-            env::set_var(key, value);
-        }
-    }
-
-    // Switch to home directory.
-    #[cfg(target_os = "macos")]
-    env::set_current_dir(home::home_dir().unwrap()).unwrap();
-
-    // Set macOS locale.
-    #[cfg(target_os = "macos")]
-    locale::set_locale_environment();
-
-    // Create the IPC socket listener.
-    let socket_path = if config.ipc_socket() {
-        match ipc::spawn_ipc_socket(&options, window_event_loop.create_proxy()) {
-            Ok(path) => Some(path),
-            Err(err) if options.daemon => return Err(err.into()),
-            Err(err) => {
-                log::warn!("Unable to create socket: {:?}", err);
-                None
-            }
-        }
-    } else {
-        None
+    let viewport = ViewportBuilder::default()
+        .with_title(options.window_title)
+        .with_inner_size([options.width, options.height])
+        .with_min_inner_size([400.0, 300.0]);
+    let native_options = eframe::NativeOptions {
+        viewport,
+        vsync: options.enable_vsync,
+        ..Default::default()
     };
 
-    // Setup automatic RAII cleanup for our files.
-    let log_cleanup = log_file.filter(|_| !config.debug.persistent_logging);
-    let _files = TemporaryFiles {
-        socket_path,
-        log_file: log_cleanup,
-    };
-
-    // Event processor.
-    let mut processor = Processor::new(config, options, &window_event_loop);
-
-    // Start event loop and block until shutdown.
-    let result = processor.run(window_event_loop);
-
-    // `Processor` must be dropped before calling `FreeConsole`.
-    //
-    // This is needed for ConPTY backend. Otherwise a deadlock can occur.
-    // The cause:
-    //   - Drop for ConPTY will deadlock if the conout pipe has already been dropped
-    //   - ConPTY is dropped when the last of processor and window context are dropped, because both
-    //     of them own an Arc<ConPTY>
-    //
-    // The fix is to ensure that processor is dropped first. That way, when window context (i.e.
-    // PTY) is dropped, it can ensure ConPTY is dropped before the conout pipe in the PTY drop
-    // order.
-    //
-    // FIXME: Change PTY API to enforce the correct drop order with the typesystem.
-
-    // Terminate the config monitor.
-    if let Some(config_monitor) = processor.config_monitor.take() {
-        config_monitor.shutdown();
-    }
-
-    info!("Goodbye");
-
-    result
-}
-
-fn log_config_path(config: &UiConfig) {
-    if config.config_paths.is_empty() {
-        return;
-    }
-
-    let mut msg = String::from("Configuration files loaded from:");
-    for path in &config.config_paths {
-        let _ = write!(msg, "\n  {:?}", path.display());
-    }
-
-    info!("{msg}");
+    eframe::run_native(
+        "Mightty",
+        native_options,
+        Box::new(|_cc| Ok(Box::new(App::default()))),
+    )
 }

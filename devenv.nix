@@ -5,7 +5,12 @@
   env.PROJECT_NAME = "mightty";
 
   # https://devenv.sh/packages/
-  packages = [ pkgs.git ];
+  packages = [ 
+    pkgs.git 
+    pkgs.clang
+    pkgs.llvm
+    pkgs.pkg-config
+  ];
 
   # https://devenv.sh/languages/
   languages.rust.enable = true;
@@ -17,13 +22,12 @@
   # services.postgres.enable = true;
 
   # https://devenv.sh/scripts/
-  scripts.hello.exec = ''
-    echo hello from $GREET
+  scripts.greet.exec = ''
+    Welcome to $PROJECT_NAME!
   '';
 
   enterShell = ''
-    hello
-    git --version
+    greet
   '';
 
   # https://devenv.sh/tasks/
