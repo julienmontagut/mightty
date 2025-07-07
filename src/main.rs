@@ -13,6 +13,7 @@ async fn main() -> eframe::Result {
         .with_title(options.window_title)
         .with_inner_size([options.width, options.height])
         .with_min_inner_size([400.0, 300.0]);
+
     let native_options = eframe::NativeOptions {
         viewport,
         vsync: options.enable_vsync,
@@ -22,6 +23,6 @@ async fn main() -> eframe::Result {
     eframe::run_native(
         "Mightty",
         native_options,
-        Box::new(|_cc| Ok(Box::new(App::default()))),
+        Box::new(|cc| Ok(Box::new(App::new(cc)))),
     )
 }

@@ -32,9 +32,11 @@ impl Default for Config {
 }
 
 pub fn config() -> Config {
+    let config_path = config_path();
+
     Figment::new()
         .merge(Serialized::defaults(Config::default()))
-        .merge(Toml::file(config_path()))
+        .merge(Toml::file(config_path))
         .merge(Env::prefixed("MIGHTTY_"))
         .merge(Serialized::defaults(Config::parse()))
         .extract()
