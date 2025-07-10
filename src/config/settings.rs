@@ -8,15 +8,15 @@ use std::path::PathBuf;
 #[command(author, version, about, long_about = None)]
 pub struct Config {
     #[arg(skip)]
-    pub(crate) height: f32,
+    pub height: f32,
     #[arg(skip)]
-    pub(crate) width: f32,
+    pub width: f32,
     #[arg(short, long)]
     current_directory: Option<PathBuf>,
     #[arg(short, long, default_value = "Mightty")]
-    pub(crate) window_title: String,
+    pub window_title: String,
     #[arg(long = "vsync", default_value = "true")]
-    pub(crate) enable_vsync: bool,
+    pub enable_vsync: bool,
 }
 
 impl Default for Config {
@@ -31,16 +31,18 @@ impl Default for Config {
     }
 }
 
-pub fn config() -> Config {
-    let config_path = config_path();
+impl Config {
+    pub fn load() -> Self {
+        let config_path = config_path();
 
-    Figment::new()
-        .merge(Serialized::defaults(Config::default()))
-        .merge(Toml::file(config_path))
-        .merge(Env::prefixed("MIGHTTY_"))
-        .merge(Serialized::defaults(Config::parse()))
-        .extract()
-        .expect("Failed to extract configuration")
+        Figment::new()
+            .merge(Serialized::defaults(Config::default()))
+            .merge(Toml::file(config_path))
+            .merge(Env::prefixed("MIGHTTY_"))
+            .merge(Serialized::defaults(Config::parse()))
+            .extract()
+            .expect("Failed to extract configuration")
+    }
 }
 
 fn config_path() -> PathBuf {
