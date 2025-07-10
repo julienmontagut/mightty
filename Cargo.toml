@@ -2,6 +2,27 @@
 name = "mightty"
 version = "0.1.0"
 edition = "2021"
+authors = ["Julien Montagut <_@julienmontagut.com>"]
+description = "A modern, fast, and lightweight terminal emulator"
+readme = "README.md"
+homepage = "https://github.com/julienmontagut/mightty"
+repository = "https://github.com/julienmontagut/mightty"
+license = "MIT"
+keywords = ["terminal", "emulator", "gui", "rust", "egui"]
+categories = ["command-line-utilities", "gui"]
+rust-version = "1.70"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[[bin]]
+name = "mightty"
+path = "src/main.rs"
+
+[lib]
+name = "mightty"
+path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.98"
