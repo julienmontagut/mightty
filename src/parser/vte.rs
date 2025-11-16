@@ -5,11 +5,11 @@ use vte::{Params, Parser, Perform};
 pub enum TerminalEvent {
     Print(char),
     Execute(u8),
-    Hook(Vec<i16>),
+    Hook(Vec<u16>),
     Put(u8),
     Unhook,
     OscDispatch(Vec<Vec<u8>>),
-    CsiDispatch(Vec<i16>, Vec<u8>, bool, char),
+    CsiDispatch(Vec<u16>, Vec<u8>, bool, char),
     EscDispatch(Vec<u8>, bool, u8),
 }
 
@@ -62,10 +62,7 @@ impl Perform for TerminalPerformer {
     }
 
     fn hook(&mut self, params: &Params, _intermediates: &[u8], _ignore: bool, _c: char) {
-        let params_vec: Vec<i16> = params
-            .iter()
-            .flat_map(|p| p.iter().map(|&x| x as i16))
-            .collect();
+        let params_vec: Vec<u16> = params.iter().flat_map(|p| p.iter().map(|&x| x)).collect();
         self.events
             .lock()
             .unwrap()
@@ -90,10 +87,7 @@ impl Perform for TerminalPerformer {
     }
 
     fn csi_dispatch(&mut self, params: &Params, intermediates: &[u8], ignore: bool, c: char) {
-        let params_vec: Vec<i16> = params
-            .iter()
-            .flat_map(|p| p.iter().map(|&x| x as i16))
-            .collect();
+        let params_vec: Vec<u16> = params.iter().flat_map(|p| p.iter().map(|&x| x)).collect();
         let intermediates_vec = intermediates.to_vec();
         self.events.lock().unwrap().push(TerminalEvent::CsiDispatch(
             params_vec,

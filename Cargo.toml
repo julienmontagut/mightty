@@ -12,10 +12,6 @@ keywords = ["terminal", "emulator", "gui", "rust", "egui"]
 categories = ["command-line-utilities", "gui"]
 rust-version = "1.70"
 
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
-
 [[bin]]
 name = "mightty"
 path = "src/main.rs"

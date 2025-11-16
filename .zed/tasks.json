@@ -1,0 +1,8 @@
+[
+  {
+    "label": "docs",
+    "command": "cargo",
+    "args": ["doc", "--open", "--document-private-items", "--no-deps"],
+    "cwd": "${ZED_WORKTREE_ROOT}"
+  }
+]

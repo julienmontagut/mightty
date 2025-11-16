@@ -5,8 +5,8 @@
   env.PROJECT_NAME = "mightty";
 
   # https://devenv.sh/packages/
-  packages = [ 
-    pkgs.git 
+  packages = [
+    pkgs.git
     pkgs.clang
     pkgs.llvm
     pkgs.pkg-config
@@ -23,7 +23,7 @@
 
   # https://devenv.sh/scripts/
   scripts.greet.exec = ''
-    Welcome to $PROJECT_NAME!
+    echo "Welcome to $PROJECT_NAME!"
   '';
 
   enterShell = ''

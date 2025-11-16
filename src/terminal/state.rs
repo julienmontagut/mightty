@@ -75,7 +75,7 @@ impl TerminalState {
         self.screen_buffer[self.rows - 1] = vec![' '; self.cols];
     }
 
-    pub fn handle_csi(&mut self, params: Vec<i16>, intermediates: &[u8], ignore: bool, c: char) {
+    pub fn handle_csi(&mut self, params: Vec<u16>, intermediates: &[u8], ignore: bool, c: char) {
         let _ = ignore;
         let _ = intermediates;
         match c {
