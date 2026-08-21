@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/julienmontagut/mightty/workflows/CI/badge.svg)](https://github.com/julienmontagut/mightty/actions)
 [![Release](https://github.com/julienmontagut/mightty/workflows/Release/badge.svg)](https://github.com/julienmontagut/mightty/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Rust](https://img.shields.io/badge/rust-1.70+-blue.svg)](https://www.rust-lang.org)
 
 A modern, fast, and lightweight terminal emulator built with Rust and egui.
@@ -174,7 +174,9 @@ If you find a bug, please create an issue with:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 or later - see the [LICENSE](LICENSE) file for details.
+
+Bundled third-party components, including the Lilex fonts (SIL OFL 1.1), are listed in [NOTICE.md](NOTICE.md).
 
 ## 🏆 Acknowledgments
 
